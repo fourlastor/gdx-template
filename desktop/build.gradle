@@ -1,0 +1,57 @@
+apply plugin: "kotlin"
+
+sourceCompatibility = 1.8
+sourceSets.main.java.srcDirs = [ "src/" ]
+sourceSets.main.resources.srcDirs = ["../assets"]
+
+project.ext.mainClassName = "io.github.fourlastor.monster.DesktopLauncher"
+project.ext.assetsDir = new File("../assets")
+
+import org.gradle.internal.os.OperatingSystem
+
+task run(dependsOn: classes, type: JavaExec) {
+    main = project.mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    workingDir = project.assetsDir
+    ignoreExitValue = true
+
+    if (OperatingSystem.current() == OperatingSystem.MAC_OS) {
+        // Required to run on macOS
+        jvmArgs += "-XstartOnFirstThread"
+    }
+}
+
+task debug(dependsOn: classes, type: JavaExec) {
+    main = project.mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    workingDir = project.assetsDir
+    ignoreExitValue = true
+    debug = true
+}
+
+task dist(type: Jar) {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    manifest {
+        attributes 'Main-Class': project.mainClassName
+    }
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
+}
+
+
+dist.dependsOn classes
+
+
+
+dependencies {
+    implementation project(":core")
+    api "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    api "com.badlogicgames.gdx-controllers:gdx-controllers-desktop:$gdxControllersVersion"
+    api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+}

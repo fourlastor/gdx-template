@@ -1,0 +1,12 @@
+apply plugin: "kotlin"
+
+sourceCompatibility = 1.8
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+sourceSets.main.java.srcDirs = [ "src/" ]
+
+dependencies {
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    api "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"
+    api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+}
