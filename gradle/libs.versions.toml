@@ -1,0 +1,11 @@
+[versions]
+gdx = "1.10.0"
+controllers = "2.2.1"
+gltf = "2.0.0-rc.1"
+
+[libraries]
+gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }
+gdxBackendLwjgl3 = { module = "com.badlogicgames.gdx:gdx-backend-lwjgl3", version.ref = "gdx" }
+controllers = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-core", version.ref = "controllers" }
+controllersDesktop = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-desktop", version.ref = "controllers" }
+gltf = { module = "com.github.mgsx-dev.gdx-gltf:gltf", version.ref = "gltf" }
