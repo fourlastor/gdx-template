@@ -17,7 +17,7 @@ import net.mgsx.gltf.scene3d.scene.SceneManager
 import net.mgsx.gltf.scene3d.scene.SceneSkybox
 import net.mgsx.gltf.scene3d.utils.IBLBuilder
 
-class TestScreem : KtxScreen {
+class TestScreen : KtxScreen {
 
     private val sceneAsset: SceneAsset = GLBLoader().load(Gdx.files.internal("../assets/human.glb"))
     private val sceneManager: SceneManager = SceneManager(sceneAsset.maxBones + 1)
@@ -43,7 +43,6 @@ class TestScreem : KtxScreen {
     init {
         sceneManager.addScene(scene)
 
-        Gdx.input.inputProcessor = cameraController
         sceneManager.setCamera(camera)
         sceneManager.environment.add(light)
 
@@ -65,6 +64,10 @@ class TestScreem : KtxScreen {
         // setup skybox
         skybox = SceneSkybox(environmentCubemap)
         sceneManager.setSkyBox(skybox)
+    }
+
+    override fun show() {
+        Gdx.input.inputProcessor = cameraController
     }
 
     override fun resize(width: Int, height: Int) {

@@ -9,4 +9,6 @@ controllersDesktop = { module = "com.badlogicgames.gdx-controllers:gdx-controlle
 gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }
 gdxBackendLwjgl3 = { module = "com.badlogicgames.gdx:gdx-backend-lwjgl3", version.ref = "gdx" }
 gltf = { module = "com.github.mgsx-dev.gdx-gltf:gltf", version.ref = "gltf" }
+ktxActors = { module = "io.github.libktx:ktx-actors", version.ref = "ktx" }
 ktxApp = { module = "io.github.libktx:ktx-app", version.ref = "ktx" }
+ktxVis = { module = "io.github.libktx:ktx-vis", version.ref = "ktx" }
