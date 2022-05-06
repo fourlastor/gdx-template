@@ -1,11 +1,14 @@
 package io.github.fourlastor.monster
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
+import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Cubemap
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g3d.utils.FirstPersonCameraController
+import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.utils.IntIntMap
 import ktx.app.KtxScreen
 import net.mgsx.gltf.loaders.glb.GLBLoader
 import net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute
@@ -19,14 +22,15 @@ import net.mgsx.gltf.scene3d.utils.IBLBuilder
 
 class TestScreen : KtxScreen {
 
-    private val sceneAsset: SceneAsset = GLBLoader().load(Gdx.files.internal("../assets/human.glb"))
+    private val sceneAsset: SceneAsset = GLBLoader().load(Gdx.files.internal("../assets/character.glb"))
     private val sceneManager: SceneManager = SceneManager(sceneAsset.maxBones + 1)
-    private val scene: Scene = Scene(sceneAsset.scene)
+    private val characterScene: Scene = Scene(sceneAsset.scene).apply {
+        animationController.animate("idle", -1, 1f, null, 0f)
+    }
     private val camera: PerspectiveCamera =
         PerspectiveCamera(60f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()).apply {
-            val d = .02f
-            near = d / 1000f
-            far = 200f
+            translate(Vector3(2f, 2f, -3f))
+            lookAt(Vector3.Zero)
         }
     private val diffuseCubemap: Cubemap
     private val environmentCubemap: Cubemap
@@ -38,10 +42,38 @@ class TestScreen : KtxScreen {
         color.set(Color.WHITE)
     }
 
-    private val cameraController = FirstPersonCameraController(camera)
+    private val cameraController = object : InputAdapter() {
+        private val keys = IntIntMap()
+
+        override fun keyDown(keycode: Int): Boolean {
+            keys.put(keycode, keycode)
+            return true
+        }
+
+        override fun keyUp(keycode: Int): Boolean {
+            keys.remove(keycode, 0)
+            return true
+        }
+
+        fun update(delta: Float) {
+            val rotation = delta * 100
+            when {
+                keys.containsKey(Input.Keys.A) -> {
+                    camera.rotateAround(Vector3.Y, Vector3.Y, rotation)
+                    camera.lookAt(Vector3.Zero)
+                    camera.update(true)
+                }
+                keys.containsKey(Input.Keys.D) -> {
+                    camera.rotateAround(Vector3.Y, Vector3.Y, -rotation)
+                    camera.lookAt(Vector3.Zero)
+                    camera.update(true)
+                }
+            }
+        }
+    }
 
     init {
-        sceneManager.addScene(scene)
+        sceneManager.addScene(characterScene)
 
         sceneManager.setCamera(camera)
         sceneManager.environment.add(light)
@@ -75,7 +107,7 @@ class TestScreen : KtxScreen {
     }
 
     override fun render(delta: Float) {
-        cameraController.update()
+        cameraController.update(delta)
         sceneManager.update(delta)
         sceneManager.render()
     }
