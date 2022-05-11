@@ -23,7 +23,7 @@ import net.mgsx.gltf.scene3d.utils.IBLBuilder
 class TestScreen : KtxScreen {
 
     private val sceneAsset: SceneAsset = GLBLoader().load(Gdx.files.internal("../assets/character.glb"))
-    private val sceneManager: SceneManager = SceneManager(sceneAsset.maxBones + 1)
+    private val sceneManager: SceneManager = SceneManager()
     private val characterScene: Scene = Scene(sceneAsset.scene).apply {
         animationController.animate("idle", -1, 1f, null, 0f)
     }
