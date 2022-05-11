@@ -1,9 +1,11 @@
 [versions]
+artemis = "2.3.0"
 controllers = "2.2.1"
 gdx = "1.10.0"
 gltf = "2.0.0-rc.1"
 ktx = "1.10.0-rc2"
 [libraries]
+artemis = { module = "net.onedaybeard.artemis:artemis-odb", version.ref = "artemis" }
 controllers = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-core", version.ref = "controllers" }
 controllersDesktop = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-desktop", version.ref = "controllers" }
 gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }

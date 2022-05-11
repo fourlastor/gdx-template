@@ -13,6 +13,7 @@ spotless {
 
 @Suppress("UnstableApiUsage")
 dependencies {
+    api(libs.artemis)
     api(libs.gdx)
     api(libs.controllers)
     api(libs.gltf)
