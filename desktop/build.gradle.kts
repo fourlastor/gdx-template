@@ -6,6 +6,7 @@ plugins {
 }
 
 spotless {
+    isEnforceCheck = false
     kotlin {
         ktfmt("0.37")
     }
