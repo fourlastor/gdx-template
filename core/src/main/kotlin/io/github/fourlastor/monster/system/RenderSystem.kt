@@ -14,44 +14,38 @@ class RenderSystem(
     private val manager: SceneManager,
 ) : BaseEntitySystem() {
 
-    private lateinit var sceneMapper: ComponentMapper<SceneComponent>
-    private lateinit var lightMapper: ComponentMapper<LightComponent>
+  private lateinit var sceneMapper: ComponentMapper<SceneComponent>
+  private lateinit var lightMapper: ComponentMapper<LightComponent>
 
-    override fun processSystem() {
-        manager.update(world.delta)
-        manager.render()
-    }
+  override fun processSystem() {
+    manager.update(world.delta)
+    manager.render()
+  }
 
-    override fun dispose() {
-        manager.dispose()
-    }
+  override fun dispose() {
+    manager.dispose()
+  }
 
-    override fun inserted(entityId: Int) {
-        entityId.onMapper(sceneMapper) { manager.addScene(it.scene) }
-        entityId.onMapper(lightMapper) { manager.environment.add(it.light) }
-    }
+  override fun inserted(entityId: Int) {
+    entityId.onMapper(sceneMapper) { manager.addScene(it.scene) }
+    entityId.onMapper(lightMapper) { manager.environment.add(it.light) }
+  }
 
-    override fun removed(entityId: Int) {
-        entityId.onMapper(sceneMapper) { manager.removeScene(it.scene) }
-        entityId.onMapper(lightMapper) { manager.environment.remove(it.light) }
-    }
-
+  override fun removed(entityId: Int) {
+    entityId.onMapper(sceneMapper) { manager.removeScene(it.scene) }
+    entityId.onMapper(lightMapper) { manager.environment.remove(it.light) }
+  }
 }
 
+class SceneComponent(var scene: Scene? = null) : PooledComponent() {
 
-class SceneComponent(
-    var scene: Scene? = null
-) : PooledComponent() {
-
-    override fun reset() {
-        scene = null
-    }
+  override fun reset() {
+    scene = null
+  }
 }
 
-class LightComponent(
-    var light: BaseLight<*>? = null
-) : PooledComponent() {
-    override fun reset() {
-        light = null
-    }
+class LightComponent(var light: BaseLight<*>? = null) : PooledComponent() {
+  override fun reset() {
+    light = null
+  }
 }

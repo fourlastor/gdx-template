@@ -10,32 +10,28 @@ import ktx.scene2d.actors
 import ktx.scene2d.vis.visTable
 import ktx.scene2d.vis.visTextButton
 
-class MenuScreen(
-    private val game: MonsterRun
-) : KtxScreen {
+class MenuScreen(private val game: MonsterRun) : KtxScreen {
 
-    private val stage = Stage()
+  private val stage = Stage()
 
-    init {
-        VisUI.load(VisUI.SkinScale.X2)
-        Scene2DSkin.defaultSkin = VisUI.getSkin()
-        stage.actors {
-            visTable {
-                setFillParent(true)
-                visTextButton("Start").apply {
-                    onClick { game.startGame() }
-                }
-            }
-        }
-        Gdx.input.inputProcessor = stage
+  init {
+    VisUI.load(VisUI.SkinScale.X2)
+    Scene2DSkin.defaultSkin = VisUI.getSkin()
+    stage.actors {
+      visTable {
+        setFillParent(true)
+        visTextButton("Start").apply { onClick { game.startGame() } }
+      }
     }
+    Gdx.input.inputProcessor = stage
+  }
 
-    override fun render(delta: Float) {
-        stage.act()
-        stage.draw()
-    }
+  override fun render(delta: Float) {
+    stage.act()
+    stage.draw()
+  }
 
-    override fun dispose() {
-        VisUI.dispose()
-    }
+  override fun dispose() {
+    VisUI.dispose()
+  }
 }

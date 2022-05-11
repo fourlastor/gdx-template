@@ -22,103 +22,105 @@ import net.mgsx.gltf.scene3d.utils.IBLBuilder
 
 class TestScreen : KtxScreen {
 
-    private val sceneAsset: SceneAsset = GLBLoader().load(Gdx.files.internal("../assets/character.glb"))
-    private val sceneManager: SceneManager = SceneManager()
-    private val characterScene: Scene = Scene(sceneAsset.scene).apply {
-        animationController.animate("idle", -1, 1f, null, 0f)
-    }
-    private val camera: PerspectiveCamera =
-        PerspectiveCamera(60f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()).apply {
-            translate(Vector3(2f, 2f, -3f))
-            lookAt(Vector3.Zero)
-        }
-    private val diffuseCubemap: Cubemap
-    private val environmentCubemap: Cubemap
-    private val specularCubemap: Cubemap
-    private val brdfLUT: Texture
-    private val skybox: SceneSkybox
-    private val light: DirectionalLightEx = DirectionalLightEx().apply {
+  private val sceneAsset: SceneAsset =
+      GLBLoader().load(Gdx.files.internal("../assets/character.glb"))
+  private val sceneManager: SceneManager = SceneManager()
+  private val characterScene: Scene =
+      Scene(sceneAsset.scene).apply { animationController.animate("idle", -1, 1f, null, 0f) }
+  private val camera: PerspectiveCamera =
+      PerspectiveCamera(60f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()).apply {
+        translate(Vector3(2f, 2f, -3f))
+        lookAt(Vector3.Zero)
+      }
+  private val diffuseCubemap: Cubemap
+  private val environmentCubemap: Cubemap
+  private val specularCubemap: Cubemap
+  private val brdfLUT: Texture
+  private val skybox: SceneSkybox
+  private val light: DirectionalLightEx =
+      DirectionalLightEx().apply {
         direction.set(1f, -3f, 1f).nor()
         color.set(Color.WHITE)
-    }
+      }
 
-    private val cameraController = object : InputAdapter() {
+  private val cameraController =
+      object : InputAdapter() {
         private val keys = IntIntMap()
 
         override fun keyDown(keycode: Int): Boolean {
-            keys.put(keycode, keycode)
-            return true
+          keys.put(keycode, keycode)
+          return true
         }
 
         override fun keyUp(keycode: Int): Boolean {
-            keys.remove(keycode, 0)
-            return true
+          keys.remove(keycode, 0)
+          return true
         }
 
         fun update(delta: Float) {
-            val rotation = delta * 100
-            when {
-                keys.containsKey(Input.Keys.A) -> {
-                    camera.rotateAround(Vector3.Y, Vector3.Y, rotation)
-                    camera.lookAt(Vector3.Zero)
-                    camera.update(true)
-                }
-                keys.containsKey(Input.Keys.D) -> {
-                    camera.rotateAround(Vector3.Y, Vector3.Y, -rotation)
-                    camera.lookAt(Vector3.Zero)
-                    camera.update(true)
-                }
+          val rotation = delta * 100
+          when {
+            keys.containsKey(Input.Keys.A) -> {
+              camera.rotateAround(Vector3.Y, Vector3.Y, rotation)
+              camera.lookAt(Vector3.Zero)
+              camera.update(true)
             }
+            keys.containsKey(Input.Keys.D) -> {
+              camera.rotateAround(Vector3.Y, Vector3.Y, -rotation)
+              camera.lookAt(Vector3.Zero)
+              camera.update(true)
+            }
+          }
         }
-    }
+      }
 
-    init {
-        sceneManager.addScene(characterScene)
+  init {
+    sceneManager.addScene(characterScene)
 
-        sceneManager.setCamera(camera)
-        sceneManager.environment.add(light)
+    sceneManager.setCamera(camera)
+    sceneManager.environment.add(light)
 
-        // setup quick IBL (image based lighting)
-        val iblBuilder = IBLBuilder.createOutdoor(light)
-        environmentCubemap = iblBuilder.buildEnvMap(1024)
-        diffuseCubemap = iblBuilder.buildIrradianceMap(256)
-        specularCubemap = iblBuilder.buildRadianceMap(10)
-        iblBuilder.dispose()
+    // setup quick IBL (image based lighting)
+    val iblBuilder = IBLBuilder.createOutdoor(light)
+    environmentCubemap = iblBuilder.buildEnvMap(1024)
+    diffuseCubemap = iblBuilder.buildIrradianceMap(256)
+    specularCubemap = iblBuilder.buildRadianceMap(10)
+    iblBuilder.dispose()
 
-        // This texture is provided by the library, no need to have it in your assets.
-        brdfLUT = Texture(Gdx.files.classpath("net/mgsx/gltf/shaders/brdfLUT.png"))
+    // This texture is provided by the library, no need to have it in your assets.
+    brdfLUT = Texture(Gdx.files.classpath("net/mgsx/gltf/shaders/brdfLUT.png"))
 
-        sceneManager.setAmbientLight(1f)
-        sceneManager.environment.set(PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT))
-        sceneManager.environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap))
-        sceneManager.environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap))
+    sceneManager.setAmbientLight(1f)
+    sceneManager.environment.set(PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT))
+    sceneManager.environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap))
+    sceneManager.environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap))
 
-        // setup skybox
-        skybox = SceneSkybox(environmentCubemap)
-        sceneManager.setSkyBox(skybox)
-    }
+    // setup skybox
+    skybox = SceneSkybox(environmentCubemap)
+    sceneManager.setSkyBox(skybox)
+  }
 
-    override fun show() {
-        Gdx.input.inputProcessor = cameraController
-    }
+  override fun show() {
+    Gdx.input.inputProcessor = cameraController
+  }
 
-    override fun resize(width: Int, height: Int) {
-        sceneManager.updateViewport(width.toFloat(), height.toFloat())
-    }
+  override fun resize(width: Int, height: Int) {
+    sceneManager.updateViewport(width.toFloat(), height.toFloat())
+  }
 
-    override fun render(delta: Float) {
-        cameraController.update(delta)
-        sceneManager.update(delta)
-        sceneManager.render()
-    }
+  override fun render(delta: Float) {
+    cameraController.update(delta)
+    sceneManager.update(delta)
+    sceneManager.render()
+  }
 
-    override fun dispose() {
-        sceneManager.dispose()
-        sceneAsset.dispose()
-        environmentCubemap.dispose()
-        diffuseCubemap.dispose()
-        specularCubemap.dispose()
-        brdfLUT.dispose()
-        skybox.dispose()
-    }
+  override fun dispose() {
+    sceneManager.dispose()
+    sceneAsset.dispose()
+    environmentCubemap.dispose()
+    diffuseCubemap.dispose()
+    specularCubemap.dispose()
+    brdfLUT.dispose()
+    skybox.dispose()
+  }
 }
