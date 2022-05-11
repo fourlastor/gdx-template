@@ -2,6 +2,13 @@ plugins {
     id("application")
     kotlin("jvm")
     application
+    id("com.diffplug.spotless")
+}
+
+spotless {
+    kotlin {
+        ktfmt("0.37")
+    }
 }
 
 group = "io.github.fourlastor"

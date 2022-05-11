@@ -1,6 +1,13 @@
 
 plugins {
     kotlin("jvm")
+    id("com.diffplug.spotless")
+}
+
+spotless {
+    kotlin {
+        ktfmt("0.37")
+    }
 }
 
 @Suppress("UnstableApiUsage")
