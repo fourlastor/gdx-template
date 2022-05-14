@@ -45,7 +45,7 @@ class EditorScreen : KtxScreen {
   }
 
   override fun show() {
-    Gdx.input.inputProcessor = inputSystem
+    Gdx.input.inputProcessor = inputSystem.processor
   }
 
   override fun hide() {

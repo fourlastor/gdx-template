@@ -14,57 +14,59 @@ import com.badlogic.gdx.math.Vector3
 import io.github.fourlastor.monster.editor.component.ModelInstanceComponent
 import io.github.fourlastor.monster.editor.component.PlaneComponent
 import io.github.fourlastor.monster.extension.onMapper
-import ktx.app.KtxInputAdapter
+import io.github.fourlastor.monster.input.InputState
+import io.github.fourlastor.monster.input.InputStateMachine
 
 @All(ModelInstanceComponent::class)
 @One(value = [PlaneComponent::class])
 class InputSystem(
     private val camera: Camera,
-) : BaseEntitySystem(), InputProcessor {
+) : BaseEntitySystem() {
 
   private lateinit var instanceMapper: ComponentMapper<ModelInstanceComponent>
   private lateinit var planeMapper: ComponentMapper<PlaneComponent>
 
   private var plane: Int? = null
 
-  private val processor: InputProcessor =
-      object : KtxInputAdapter {
-        private var keycode = -1
+  private val stateMachine = InputStateMachine(this, State.IDLE)
 
-        override fun keyDown(keycode: Int): Boolean {
-          this.keycode = keycode
-          return false
-        }
-
-        override fun keyUp(keycode: Int): Boolean {
-          this.keycode = -1
-          return false
-        }
-
-        private val controllerTranslation = Vector3()
-
-        override fun scrolled(amountX: Float, amountY: Float): Boolean {
-          return when (keycode) {
+  private enum class State : InputState {
+    IDLE {
+      override fun keyDown(entity: InputSystem, keycode: Int) =
+          when (keycode) {
             Input.Keys.SHIFT_LEFT -> {
-              plane?.onMapper(instanceMapper) {
-                it.instance?.run {
-                  transform.run {
-                    setTranslation(getTranslation(controllerTranslation).add(0f, -amountY, 0f))
-                  }
-                }
-              }
+              entity.stateMachine.changeState(MOVING_PLANE)
               true
             }
             else -> false
           }
-        }
-      }
-        .let {
-          InputMultiplexer(it, CameraInputController(camera).apply {
+    },
+    MOVING_PLANE {
+      override fun scrolled(entity: InputSystem, amountX: Float, amountY: Float): Boolean =
+          entity.movePlane(amountY).let { true }
+
+      override fun keyUp(entity: InputSystem, keycode: Int): Boolean =
+          keycode == Input.Keys.SHIFT_LEFT && entity.stateMachine.revertToPreviousState()
+    }
+  }
+
+  val processor: InputProcessor =
+      InputMultiplexer(
+          stateMachine,
+          CameraInputController(camera).apply {
             forwardButton = -2
             rotateButton = Buttons.MIDDLE
           })
-        }
+
+  private val planeTranslation = Vector3()
+
+  private fun movePlane(amountY: Float) {
+    plane?.onMapper(instanceMapper) {
+      it.instance?.run {
+        transform.run { setTranslation(getTranslation(planeTranslation).add(0f, -amountY, 0f)) }
+      }
+    }
+  }
 
   override fun inserted(entityId: Int) {
     super.inserted(entityId)
@@ -78,27 +80,7 @@ class InputSystem(
   }
 
   override fun processSystem() {
+    stateMachine.update()
     camera.update()
   }
-
-  override fun keyDown(keycode: Int): Boolean = processor.keyDown(keycode)
-
-  override fun keyUp(keycode: Int): Boolean = processor.keyUp(keycode)
-
-  override fun keyTyped(character: Char): Boolean = processor.keyTyped(character)
-
-  override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean =
-      processor.touchDown(screenX, screenY, pointer, button)
-
-  override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean =
-      processor.touchUp(screenX, screenY, pointer, button)
-
-  override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean =
-      processor.touchDragged(screenX, screenY, pointer)
-
-  override fun mouseMoved(screenX: Int, screenY: Int): Boolean =
-      processor.mouseMoved(screenX, screenY)
-
-  override fun scrolled(amountX: Float, amountY: Float): Boolean =
-      processor.scrolled(amountX, amountY)
 }
