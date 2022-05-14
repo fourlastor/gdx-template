@@ -15,6 +15,7 @@ spotless {
 dependencies {
     api(libs.artemis)
     api(libs.gdx)
+    api(libs.gdxAi)
     api(libs.controllers)
     api(libs.gltf)
     api(libs.ktxActors)

@@ -2,6 +2,7 @@
 artemis = "2.3.0"
 controllers = "2.2.1"
 gdx = "1.10.0"
+gdxAi = "1.8.2"
 gltf = "2.0.0-rc.1"
 ktx = "1.10.0-rc2"
 [libraries]
@@ -9,6 +10,7 @@ artemis = { module = "net.onedaybeard.artemis:artemis-odb", version.ref = "artem
 controllers = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-core", version.ref = "controllers" }
 controllersDesktop = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-desktop", version.ref = "controllers" }
 gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }
+gdxAi = { module = "com.badlogicgames.gdx:gdx-ai", version.ref = "gdxAi" }
 gdxBackendLwjgl3 = { module = "com.badlogicgames.gdx:gdx-backend-lwjgl3", version.ref = "gdx" }
 gltf = { module = "com.github.mgsx-dev.gdx-gltf:gltf", version.ref = "gltf" }
 ktxActors = { module = "io.github.libktx:ktx-actors", version.ref = "ktx" }
