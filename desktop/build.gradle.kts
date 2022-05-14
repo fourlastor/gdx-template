@@ -3,6 +3,7 @@ plugins {
     kotlin("jvm")
     application
     id("com.diffplug.spotless")
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 spotless {
