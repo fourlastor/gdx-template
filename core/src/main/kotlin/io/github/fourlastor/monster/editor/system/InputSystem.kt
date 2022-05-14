@@ -6,6 +6,7 @@ import com.artemis.annotations.All
 import com.artemis.annotations.One
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.Input.Buttons
+import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
@@ -13,6 +14,7 @@ import com.badlogic.gdx.math.Vector3
 import io.github.fourlastor.monster.editor.component.ModelInstanceComponent
 import io.github.fourlastor.monster.editor.component.PlaneComponent
 import io.github.fourlastor.monster.extension.onMapper
+import ktx.app.KtxInputAdapter
 
 @All(ModelInstanceComponent::class)
 @One(value = [PlaneComponent::class])
@@ -25,23 +27,18 @@ class InputSystem(
 
   private var plane: Int? = null
 
-  private val processor: CameraInputController =
-      object : CameraInputController(camera) {
+  private val processor: InputProcessor =
+      object : KtxInputAdapter {
         private var keycode = -1
-
-        init {
-          forwardButton = -2
-          rotateButton = Buttons.MIDDLE
-        }
 
         override fun keyDown(keycode: Int): Boolean {
           this.keycode = keycode
-          return super.keyDown(keycode)
+          return false
         }
 
         override fun keyUp(keycode: Int): Boolean {
           this.keycode = -1
-          return super.keyUp(keycode)
+          return false
         }
 
         private val controllerTranslation = Vector3()
@@ -58,10 +55,16 @@ class InputSystem(
               }
               true
             }
-            else -> super.scrolled(amountX, amountY)
+            else -> false
           }
         }
       }
+        .let {
+          InputMultiplexer(it, CameraInputController(camera).apply {
+            forwardButton = -2
+            rotateButton = Buttons.MIDDLE
+          })
+        }
 
   override fun inserted(entityId: Int) {
     super.inserted(entityId)
