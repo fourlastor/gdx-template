@@ -1,4 +1,4 @@
-package io.github.fourlastor.monster
+package io.github.fourlastor.jamjam
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -10,7 +10,7 @@ import ktx.scene2d.actors
 import ktx.scene2d.vis.visTable
 import ktx.scene2d.vis.visTextButton
 
-class MenuScreen(private val game: MonsterRun) : KtxScreen {
+class MenuScreen(private val game: JamGame) : KtxScreen {
 
   private val stage = Stage()
 
@@ -23,7 +23,14 @@ class MenuScreen(private val game: MonsterRun) : KtxScreen {
         visTextButton("Start").apply { onClick { game.startGame() } }
       }
     }
+  }
+
+  override fun show() {
     Gdx.input.inputProcessor = stage
+  }
+
+  override fun hide() {
+    Gdx.input.inputProcessor = null
   }
 
   override fun render(delta: Float) {
@@ -32,6 +39,7 @@ class MenuScreen(private val game: MonsterRun) : KtxScreen {
   }
 
   override fun dispose() {
+    stage.dispose()
     VisUI.dispose()
   }
 }
