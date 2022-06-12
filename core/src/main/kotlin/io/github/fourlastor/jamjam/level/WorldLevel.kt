@@ -1,4 +1,4 @@
-package io.github.fourlastor.ldtk
+package io.github.fourlastor.jamjam.level
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Sprite
@@ -7,16 +7,23 @@ import com.badlogic.gdx.utils.Disposable
 import java.lang.Float.max
 import kotlin.math.min
 
-class WorldLevel(private val layers: List<Layer>) {
-  fun render(batch: SpriteBatch) {
-    layers.forEach { it.render(batch) }
+class WorldLevel(val layers: List<Layer>) : Disposable {
+
+  override fun dispose() {
+    layers.forEach { it.dispose() }
   }
-  sealed class Layer {
+
+  sealed class Layer : Disposable {
+
+    abstract val order: Int
 
     abstract fun render(batch: SpriteBatch)
 
-    class SpriteLayer(private val texture: Texture, private val tiles: List<Sprite>) :
-        Disposable, Layer() {
+    class SpriteLayer(
+            override val order: Int,
+            private val texture: Texture,
+            private val tiles: List<Sprite>
+    ) : Layer() {
 
       override fun render(batch: SpriteBatch) {
         var minx = Float.MAX_VALUE

@@ -1,24 +1,33 @@
-package io.github.fourlastor.jamjam
+package io.github.fourlastor.jamjam.level
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.FitViewport
-import io.github.fourlastor.ldtk.LDtkConverter
+import com.github.quillraven.fleks.World
+import io.github.fourlastor.jamjam.level.system.LayerComponent
+import io.github.fourlastor.jamjam.level.system.RenderSystem
 import io.github.fourlastor.ldtk.LDtkReader
 import ktx.app.KtxScreen
-import ktx.app.clearScreen
-import ktx.graphics.use
 
-class GameScreen : KtxScreen {
+class LevelScreen : KtxScreen {
 
   private val mapData = LDtkReader().data(Gdx.files.internal("maps.ldtk").read())
   private val level = LDtkConverter(1f / 16f).convert(mapData.levelDefinitions[0])
 
-  private val batch = SpriteBatch()
   private val camera = OrthographicCamera().apply { setToOrtho(true) }
   private val viewport = FitViewport(16f, 9f, camera)
+
+  private val world =
+          World {
+            inject(camera)
+            system<RenderSystem>()
+          }
+                  .apply {
+                    level.layers.forEach { gameLayer ->
+                      entity { add<LayerComponent> { layer = gameLayer } }
+                    }
+                  }
 
   override fun show() {
     Gdx.input.inputProcessor = null
@@ -31,8 +40,7 @@ class GameScreen : KtxScreen {
   override fun render(delta: Float) {
     handleInput()
     camera.update()
-    clearScreen(0.3f, 0.3f, 0.3f)
-    batch.use(viewport.camera) { level.render(it) }
+    world.update(delta)
   }
 
   private val factor = 1f / 16f
@@ -60,6 +68,7 @@ class GameScreen : KtxScreen {
   }
 
   override fun dispose() {
-    batch.dispose()
+    world.dispose()
+    level.dispose()
   }
 }
