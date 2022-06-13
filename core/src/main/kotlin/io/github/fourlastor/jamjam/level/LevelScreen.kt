@@ -43,7 +43,7 @@ class LevelScreen : KtxScreen {
     world.update(delta)
   }
 
-  private val factor = 1f / 16f
+  private val factor = 1f / 10f
 
   private fun handleInput() {
     if (Gdx.input.isKeyPressed(Input.Keys.A)) {
