@@ -12,34 +12,34 @@ import ktx.scene2d.vis.visTextButton
 
 class MenuScreen(private val game: JamGame) : KtxScreen {
 
-  private val stage = Stage()
+    private val stage = Stage()
 
-  init {
-    VisUI.load(VisUI.SkinScale.X2)
-    Scene2DSkin.defaultSkin = VisUI.getSkin()
-    stage.actors {
-      visTable {
-        setFillParent(true)
-        visTextButton("Start").apply { onClick { game.startGame() } }
-      }
+    init {
+        VisUI.load(VisUI.SkinScale.X2)
+        Scene2DSkin.defaultSkin = VisUI.getSkin()
+        stage.actors {
+            visTable {
+                setFillParent(true)
+                visTextButton("Start").apply { onClick { game.startGame() } }
+            }
+        }
     }
-  }
 
-  override fun show() {
-    Gdx.input.inputProcessor = stage
-  }
+    override fun show() {
+        Gdx.input.inputProcessor = stage
+    }
 
-  override fun hide() {
-    Gdx.input.inputProcessor = null
-  }
+    override fun hide() {
+        Gdx.input.inputProcessor = null
+    }
 
-  override fun render(delta: Float) {
-    stage.act()
-    stage.draw()
-  }
+    override fun render(delta: Float) {
+        stage.act()
+        stage.draw()
+    }
 
-  override fun dispose() {
-    stage.dispose()
-    VisUI.dispose()
-  }
+    override fun dispose() {
+        stage.dispose()
+        VisUI.dispose()
+    }
 }

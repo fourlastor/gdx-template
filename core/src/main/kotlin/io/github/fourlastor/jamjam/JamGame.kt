@@ -6,13 +6,13 @@ import ktx.app.KtxGame
 
 class JamGame : KtxGame<Screen>() {
 
-  override fun create() {
-      addScreen(LevelScreen())
-      addScreen(MenuScreen(this))
-    setScreen<MenuScreen>()
-  }
+    override fun create() {
+        addScreen(LevelScreen())
+        addScreen(MenuScreen(this))
+        setScreen<MenuScreen>()
+    }
 
-  fun startGame() {
-      setScreen<LevelScreen>()
-  }
+    fun startGame() {
+        setScreen<LevelScreen>()
+    }
 }

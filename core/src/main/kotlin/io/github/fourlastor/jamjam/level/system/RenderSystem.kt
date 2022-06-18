@@ -13,13 +13,13 @@ import ktx.graphics.use
 
 @AllOf([LayerComponent::class])
 class RenderSystem(
-        private val layers: ComponentMapper<LayerComponent>,
-        private val camera: OrthographicCamera,
+    private val layers: ComponentMapper<LayerComponent>,
+    private val camera: OrthographicCamera,
 ) :
-        IteratingSystem(
-                compareEntity { entity, entity2 ->
-                    layers[entity].order.compareTo(layers[entity2].order)
-                }) {
+    IteratingSystem(
+        compareEntity { entity, entity2 ->
+            layers[entity].order.compareTo(layers[entity2].order)
+        }) {
 
     private val batch = SpriteBatch()
 
