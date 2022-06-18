@@ -153,7 +153,15 @@ data class LDtkTilesetDefinition(
      *
      * Possible values: `null`, `LdtkIcons`
      */
-    val embedAtlas: String? = null
+    val embedAtlas: String? = null,
+
+    val customData: List<TilesetCustomData>
+)
+
+@Serializable
+data class TilesetCustomData(
+    val tileId: Int,
+    val data: String,
 )
 
 /**
