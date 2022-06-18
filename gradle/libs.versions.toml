@@ -5,6 +5,7 @@ gdx = "1.10.0"
 gdxAi = "1.8.2"
 gltf = "2.0.0-rc.1"
 ktx = "1.10.0-rc2"
+serializationJson = "1.3.3"
 [libraries]
 controllers = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-core", version.ref = "controllers" }
 controllersDesktop = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-desktop", version.ref = "controllers" }
@@ -15,4 +16,6 @@ gdxBackendLwjgl3 = { module = "com.badlogicgames.gdx:gdx-backend-lwjgl3", versio
 gltf = { module = "com.github.mgsx-dev.gdx-gltf:gltf", version.ref = "gltf" }
 ktxActors = { module = "io.github.libktx:ktx-actors", version.ref = "ktx" }
 ktxApp = { module = "io.github.libktx:ktx-app", version.ref = "ktx" }
+ktxGraphics = { module = "io.github.libktx:ktx-graphics", version.ref = "ktx" }
 ktxVis = { module = "io.github.libktx:ktx-vis", version.ref = "ktx" }
+serializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serializationJson" }
