@@ -16,7 +16,7 @@ class LevelScreen : KtxScreen {
   private val level = LDtkConverter(1f / 16f).convert(mapData.levelDefinitions[0], mapData.defs)
 
   private val camera = OrthographicCamera().apply { setToOrtho(true) }
-  private val viewport = FitViewport(16f, 9f, camera)
+  private val viewport = FitViewport(16f, 10f, camera)
 
   private val world =
           World {
