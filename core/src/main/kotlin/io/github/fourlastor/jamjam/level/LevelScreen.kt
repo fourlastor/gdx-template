@@ -13,7 +13,7 @@ import ktx.app.KtxScreen
 class LevelScreen : KtxScreen {
 
   private val mapData = LDtkReader().data(Gdx.files.internal("maps.ldtk").read())
-  private val level = LDtkConverter(1f / 16f).convert(mapData.levelDefinitions[0])
+  private val level = LDtkConverter(1f / 16f).convert(mapData.levelDefinitions[0], mapData.defs)
 
   private val camera = OrthographicCamera().apply { setToOrtho(true) }
   private val viewport = FitViewport(16f, 9f, camera)

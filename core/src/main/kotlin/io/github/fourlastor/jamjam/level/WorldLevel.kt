@@ -1,8 +1,8 @@
 package io.github.fourlastor.jamjam.level
 
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.utils.Disposable
 import java.lang.Float.max
 import kotlin.math.min
@@ -20,9 +20,9 @@ class WorldLevel(val layers: List<Layer>) : Disposable {
     abstract fun render(batch: SpriteBatch)
 
     class SpriteLayer(
-            override val order: Int,
-            private val texture: Texture,
-            private val tiles: List<Sprite>
+      override val order: Int,
+      private val texture: TextureAtlas,
+      private val tiles: List<Sprite>
     ) : Layer() {
 
       override fun render(batch: SpriteBatch) {
