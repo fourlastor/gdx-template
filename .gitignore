@@ -90,3 +90,7 @@ gradle-app.setting
 
 # Project specific
 export/*
+
+# Krita backups
+*.kra~
+*.png~
