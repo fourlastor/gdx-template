@@ -3,6 +3,7 @@ package io.github.fourlastor.jamjam
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.VisUI
+import io.github.fourlastor.ldtk.LDtkMapData
 import ktx.actors.onClick
 import ktx.app.KtxScreen
 import ktx.scene2d.Scene2DSkin
@@ -10,7 +11,10 @@ import ktx.scene2d.actors
 import ktx.scene2d.vis.visTable
 import ktx.scene2d.vis.visTextButton
 
-class MenuScreen(private val game: JamGame) : KtxScreen {
+class MenuScreen(
+    private val game: JamGame,
+    private val gameData: LDtkMapData,
+) : KtxScreen {
 
     private val stage = Stage()
 
@@ -18,9 +22,12 @@ class MenuScreen(private val game: JamGame) : KtxScreen {
         VisUI.load(VisUI.SkinScale.X2)
         Scene2DSkin.defaultSkin = VisUI.getSkin()
         stage.actors {
-            visTable {
+            visTable(defaultSpacing = true) {
                 setFillParent(true)
-                visTextButton("Start").apply { onClick { game.startGame() } }
+                gameData.levelDefinitions.forEachIndexed { index, _ ->
+                    row()
+                    visTextButton("Start level ${index + 1}").apply { onClick { game.startGame() } }
+                }
             }
         }
     }
