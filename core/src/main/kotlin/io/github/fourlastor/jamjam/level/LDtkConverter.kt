@@ -2,20 +2,35 @@ package io.github.fourlastor.jamjam.level
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
+import com.badlogic.gdx.math.Rectangle
 import io.github.fourlastor.ldtk.Definitions
 import io.github.fourlastor.ldtk.LDtkLayerInstance
 import io.github.fourlastor.ldtk.LDtkLevelDefinition
 
-class LDtkConverter(private val scale: Float = 1f) {
-    fun convert(levelDefinition: LDtkLevelDefinition, definitions: Definitions): WorldLevel {
-        return levelDefinition.toLevel(definitions)
-    }
+class LDtkConverter(private val scale: Float) {
+    fun convert(levelDefinition: LDtkLevelDefinition, definitions: Definitions): WorldLevel = WorldLevel(
+        layers = levelDefinition.layerInstances.orEmpty().reversed()
+            .mapIndexedNotNull { i, it -> it.toLayer(i, definitions) },
+        boxes = levelDefinition.layerInstances?.firstOrNull { it.type == "IntGrid" }
+            .toBoxes()
+    )
 
-    private fun LDtkLevelDefinition.toLevel(definitions: Definitions): WorldLevel {
-        return WorldLevel(
-            layers = layerInstances.orEmpty().reversed().mapIndexedNotNull { i, it -> it.toLayer(i, definitions) })
-    }
+    /** Converts an IntGrid layer to definitions used in the physics world. */
+    private fun LDtkLayerInstance?.toBoxes(): List<Rectangle> = this?.run {
+        intGridCSV.orEmpty()
+            .mapIndexedNotNull { index, i ->
+                index.takeIf { i == 1 }?.let {
+                    Rectangle(
+                        (index % cWid).toFloat(),
+                        (index / cWid).toFloat(),
+                        gridSize * scale,
+                        gridSize * scale,
+                    )
+                }
+            }
+    }.orEmpty()
 
+    /** Converts an AutoLayer to a renderable [WorldLevel.Layer]. */
     private fun LDtkLayerInstance.toLayer(position: Int, definitions: Definitions): WorldLevel.Layer? =
         when (type) {
             "AutoLayer" -> {
@@ -30,6 +45,7 @@ class LDtkConverter(private val scale: Float = 1f) {
                                     .let { tileId -> tileset.customData.find { it.tileId == tileId } }
                                     ?.let { atlas.createSprite(it.data) }
                                     ?.apply {
+                                        setOrigin(0f, 0f)
                                         setScale(scale)
                                         setPosition(tile.px[0] * scale, tile.px[1] * scale)
 
@@ -41,6 +57,7 @@ class LDtkConverter(private val scale: Float = 1f) {
                             })
                     }
             }
+
             else -> null
         }
 }

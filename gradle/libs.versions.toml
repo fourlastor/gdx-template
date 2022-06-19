@@ -13,9 +13,11 @@ fleks = { module = "io.github.quillraven.fleks:Fleks", version.ref = "fleks" }
 gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }
 gdxAi = { module = "com.badlogicgames.gdx:gdx-ai", version.ref = "gdxAi" }
 gdxBackendLwjgl3 = { module = "com.badlogicgames.gdx:gdx-backend-lwjgl3", version.ref = "gdx" }
+gdxBox2d = { module = "com.badlogicgames.gdx:gdx-box2d", version.ref = "gdx" }
 gltf = { module = "com.github.mgsx-dev.gdx-gltf:gltf", version.ref = "gltf" }
 ktxActors = { module = "io.github.libktx:ktx-actors", version.ref = "ktx" }
 ktxApp = { module = "io.github.libktx:ktx-app", version.ref = "ktx" }
+ktxBox2d = { module = "io.github.libktx:ktx-box2d", version.ref = "ktx" }
 ktxGraphics = { module = "io.github.libktx:ktx-graphics", version.ref = "ktx" }
 ktxVis = { module = "io.github.libktx:ktx-vis", version.ref = "ktx" }
 serializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serializationJson" }

@@ -5,7 +5,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 
 fun main() {
     val config = Lwjgl3ApplicationConfiguration().apply {
-        setWindowedMode(1920, 1200)
+        setWindowedMode(960, 600)
         setForegroundFPS(60)
     }
     Lwjgl3Application(JamGame(), config)

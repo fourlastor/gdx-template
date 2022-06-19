@@ -2,31 +2,53 @@ package io.github.fourlastor.jamjam.level
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.github.quillraven.fleks.World
+import io.github.fourlastor.jamjam.level.system.BodiesListener
+import io.github.fourlastor.jamjam.level.system.Box2dComponent
 import io.github.fourlastor.jamjam.level.system.LayerComponent
+import io.github.fourlastor.jamjam.level.system.PhisycsDebugSystem
+import io.github.fourlastor.jamjam.level.system.PhisycsSystem
 import io.github.fourlastor.jamjam.level.system.RenderSystem
 import io.github.fourlastor.ldtk.LDtkReader
 import ktx.app.KtxScreen
+import ktx.box2d.createWorld
+import ktx.box2d.earthGravity
+import ktx.graphics.center
 
 class LevelScreen : KtxScreen {
 
     private val mapData = LDtkReader().data(Gdx.files.internal("maps.ldtk").read())
-    private val level = LDtkConverter(1f / 16f).convert(mapData.levelDefinitions[0], mapData.defs)
+    private val levelIndex = 0
+    private val levelDefinition = mapData.levelDefinitions[levelIndex]
+    private val level = LDtkConverter(1f / 16f).convert(levelDefinition, mapData.defs)
 
-    private val camera = OrthographicCamera().apply { setToOrtho(true) }
-    private val viewport = FitViewport(16f, 10f, camera)
+    private val camera = OrthographicCamera().apply {
+        setToOrtho(true)
+    }
+    private val viewport = FitViewport(16f, 10f, camera).also {
+        camera.center(it.worldWidth, it.worldHeight)
+    }
+
+    private val box2dWorld = createWorld(gravity = earthGravity)
 
     private val world =
         World {
-            inject(camera)
+            inject<Camera>(viewport.camera)
+            inject(box2dWorld)
+            inject(PhisycsSystem.Config(step = 1f / 60f))
             system<RenderSystem>()
+            system<PhisycsSystem>()
+            componentListener<BodiesListener>()
+            system<PhisycsDebugSystem>()
         }
             .apply {
                 level.layers.forEach { gameLayer ->
                     entity { add<LayerComponent> { layer = gameLayer } }
                 }
+                entity { add<Box2dComponent> { boxes = level.boxes } }
             }
 
     override fun show() {
@@ -34,7 +56,7 @@ class LevelScreen : KtxScreen {
     }
 
     override fun resize(width: Int, height: Int) {
-        viewport.update(width, height, true)
+        viewport.update(width, height, false)
     }
 
     override fun render(delta: Float) {
@@ -52,19 +74,6 @@ class LevelScreen : KtxScreen {
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
             camera.translate(factor, 0f, 0f)
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            camera.translate(0f, -factor, 0f)
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            camera.translate(0f, factor, 0f)
-        }
-
-        val effectiveViewportWidth: Float = camera.viewportWidth * camera.zoom
-        val effectiveViewportHeight: Float = camera.viewportHeight * camera.zoom
-        camera.position.x =
-            camera.position.x.coerceIn(effectiveViewportWidth / 2f, 100 - effectiveViewportWidth / 2f)
-        camera.position.y =
-            camera.position.y.coerceIn(effectiveViewportHeight / 2f, 100 - effectiveViewportHeight / 2f)
     }
 
     override fun dispose() {
