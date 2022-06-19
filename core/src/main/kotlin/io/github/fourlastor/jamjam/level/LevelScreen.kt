@@ -6,24 +6,27 @@ import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.github.quillraven.fleks.World
+import io.github.fourlastor.jamjam.JamGame
 import io.github.fourlastor.jamjam.level.system.BodiesListener
 import io.github.fourlastor.jamjam.level.system.Box2dComponent
 import io.github.fourlastor.jamjam.level.system.LayerComponent
 import io.github.fourlastor.jamjam.level.system.PhisycsDebugSystem
 import io.github.fourlastor.jamjam.level.system.PhisycsSystem
 import io.github.fourlastor.jamjam.level.system.RenderSystem
-import io.github.fourlastor.ldtk.LDtkReader
+import io.github.fourlastor.ldtk.Definitions
+import io.github.fourlastor.ldtk.LDtkLevelDefinition
 import ktx.app.KtxScreen
 import ktx.box2d.createWorld
 import ktx.box2d.earthGravity
 import ktx.graphics.center
 
-class LevelScreen : KtxScreen {
+class LevelScreen(
+    private val game: JamGame,
+    private val levelDefinition: LDtkLevelDefinition,
+    definitions: Definitions
+) : KtxScreen {
 
-    private val mapData = LDtkReader().data(Gdx.files.internal("maps.ldtk").read())
-    private val levelIndex = 0
-    private val levelDefinition = mapData.levelDefinitions[levelIndex]
-    private val level = LDtkConverter(1f / 16f).convert(levelDefinition, mapData.defs)
+    private val level = LDtkConverter(1f / 16f).convert(this.levelDefinition, definitions)
 
     private val camera = OrthographicCamera().apply {
         setToOrtho(true)
@@ -73,6 +76,9 @@ class LevelScreen : KtxScreen {
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
             camera.translate(factor, 0f, 0f)
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)) {
+            game.goToMenu()
         }
     }
 
