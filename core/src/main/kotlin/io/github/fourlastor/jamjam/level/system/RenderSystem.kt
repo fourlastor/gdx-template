@@ -1,6 +1,6 @@
 package io.github.fourlastor.jamjam.level.system
 
-import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.github.quillraven.fleks.AllOf
 import com.github.quillraven.fleks.ComponentMapper
@@ -14,7 +14,7 @@ import ktx.graphics.use
 @AllOf([LayerComponent::class])
 class RenderSystem(
     private val layers: ComponentMapper<LayerComponent>,
-    private val camera: OrthographicCamera,
+    private val camera: Camera,
 ) :
     IteratingSystem(
         compareEntity { entity, entity2 ->
