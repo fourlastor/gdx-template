@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.physics.box2d.Box2D
 import io.github.fourlastor.jamjam.level.LevelScreen
+import io.github.fourlastor.ldtk.Definitions
+import io.github.fourlastor.ldtk.LDtkLevelDefinition
 import io.github.fourlastor.ldtk.LDtkReader
 import ktx.app.KtxGame
 
@@ -15,12 +17,15 @@ class JamGame : KtxGame<Screen>() {
         Box2D.init()
         val gameData = reader.data(Gdx.files.internal("maps.ldtk").read())
 
-        addScreen(LevelScreen())
         addScreen(MenuScreen(this, gameData))
         setScreen<MenuScreen>()
     }
 
-    fun startGame() {
+    fun startGame(levelDefinition: LDtkLevelDefinition, defs: Definitions) {
+        if (containsScreen<LevelScreen>()) {
+            removeScreen<LevelScreen>()
+        }
+        addScreen(LevelScreen(levelDefinition, defs))
         setScreen<LevelScreen>()
     }
 }

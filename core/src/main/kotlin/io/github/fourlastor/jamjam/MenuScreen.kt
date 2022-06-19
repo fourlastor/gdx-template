@@ -24,9 +24,16 @@ class MenuScreen(
         stage.actors {
             visTable(defaultSpacing = true) {
                 setFillParent(true)
-                gameData.levelDefinitions.forEachIndexed { index, _ ->
+                gameData.levelDefinitions.forEachIndexed { index, levelDefinition ->
                     row()
-                    visTextButton("Start level ${index + 1}").apply { onClick { game.startGame() } }
+                    visTextButton("Start level ${index + 1}").apply {
+                        onClick {
+                            game.startGame(
+                                levelDefinition,
+                                gameData.defs
+                            )
+                        }
+                    }
                 }
             }
         }
