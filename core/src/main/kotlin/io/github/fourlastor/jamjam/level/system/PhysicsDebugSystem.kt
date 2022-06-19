@@ -10,10 +10,14 @@ class PhisycsDebugSystem(
     private val box2dWorld: World,
 ) : IntervalSystem() {
 
-    private val debugRender by lazy { Box2DDebugRenderer() }
+    private val debugRenderer = Box2DDebugRenderer()
 
     override fun onTick() {
-        debugRender.render(box2dWorld, camera.combined)
+        debugRenderer.render(box2dWorld, camera.combined)
+    }
+
+    override fun onDispose() {
+        debugRenderer.dispose()
     }
 
 }
