@@ -1,6 +1,6 @@
 name=tiles
 filename=tiles.atlas
-output=core/src/main/resources
+output=../core/src/main/resources
 
 alias=true
 alphaThreshold=0
@@ -32,7 +32,7 @@ limitMemory=true
 useIndexes=true
 
 scaleFactors=[{suffix:"",factor:1,resampling:bicubic}]
-inputFiles=[{path:export/Tiles,type:Input,dirFilePrefix:null,recursive:false,flattenPaths:false}]
+inputFiles=[{path:../export/Tiles,type:Input,dirFilePrefix:null,recursive:false,flattenPaths:false}]
 keepInputFileExtensions=false
 
 
