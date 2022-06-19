@@ -90,6 +90,8 @@ gradle-app.setting
 
 # Project specific
 export/*
+tiles/*.json
+
 
 # Krita backups
 *.kra~
