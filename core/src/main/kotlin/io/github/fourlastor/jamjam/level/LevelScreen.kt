@@ -41,10 +41,10 @@ class LevelScreen(
         World {
             inject<Camera>(viewport.camera)
             inject(box2dWorld)
+            componentListener<BodiesListener>()
             inject(PhysicsSystem.Config(step = 1f / 60f))
             system<PhysicsSystem>()
             system<RenderSystem>()
-            componentListener<BodiesListener>()
             system<PhysicsDebugSystem>()
         }
             .apply {
