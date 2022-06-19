@@ -30,6 +30,7 @@ class LDtkConverter(private val scale: Float = 1f) {
                                     .let { tileId -> tileset.customData.find { it.tileId == tileId } }
                                     ?.let { atlas.createSprite(it.data) }
                                     ?.apply {
+                                        setOrigin(0f, 0f)
                                         setScale(scale)
                                         setPosition(tile.px[0] * scale, tile.px[1] * scale)
 
