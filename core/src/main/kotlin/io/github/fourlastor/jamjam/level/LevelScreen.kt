@@ -10,8 +10,8 @@ import io.github.fourlastor.jamjam.JamGame
 import io.github.fourlastor.jamjam.level.system.BodiesListener
 import io.github.fourlastor.jamjam.level.system.Box2dComponent
 import io.github.fourlastor.jamjam.level.system.LayerComponent
-import io.github.fourlastor.jamjam.level.system.PhisycsDebugSystem
-import io.github.fourlastor.jamjam.level.system.PhisycsSystem
+import io.github.fourlastor.jamjam.level.system.PhysicsDebugSystem
+import io.github.fourlastor.jamjam.level.system.PhysicsSystem
 import io.github.fourlastor.jamjam.level.system.RenderSystem
 import io.github.fourlastor.ldtk.Definitions
 import io.github.fourlastor.ldtk.LDtkLevelDefinition
@@ -41,11 +41,11 @@ class LevelScreen(
         World {
             inject<Camera>(viewport.camera)
             inject(box2dWorld)
-            inject(PhisycsSystem.Config(step = 1f / 60f))
+            inject(PhysicsSystem.Config(step = 1f / 60f))
+            system<PhysicsSystem>()
             system<RenderSystem>()
-            system<PhisycsSystem>()
             componentListener<BodiesListener>()
-            system<PhisycsDebugSystem>()
+            system<PhysicsDebugSystem>()
         }
             .apply {
                 level.layers.forEach { gameLayer ->

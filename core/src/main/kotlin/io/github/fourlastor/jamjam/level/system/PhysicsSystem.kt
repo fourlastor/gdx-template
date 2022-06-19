@@ -11,7 +11,7 @@ import com.github.quillraven.fleks.IntervalSystem
 import ktx.box2d.body
 import ktx.box2d.box
 
-class PhisycsSystem(
+class PhysicsSystem(
     private val config: Config,
     private val box2dWorld: World,
 ) : IntervalSystem(interval = Fixed(config.step)) {

@@ -5,7 +5,7 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.physics.box2d.World
 import com.github.quillraven.fleks.IntervalSystem
 
-class PhisycsDebugSystem(
+class PhysicsDebugSystem(
     private val camera: Camera,
     private val box2dWorld: World,
 ) : IntervalSystem() {
