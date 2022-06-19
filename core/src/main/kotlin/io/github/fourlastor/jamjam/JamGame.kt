@@ -22,10 +22,19 @@ class JamGame : KtxGame<Screen>() {
     }
 
     fun startGame(levelDefinition: LDtkLevelDefinition, defs: Definitions) {
+        clearLevel()
+        addScreen(LevelScreen(this, levelDefinition, defs))
+        setScreen<LevelScreen>()
+    }
+
+    fun goToMenu() {
+        clearLevel()
+        setScreen<MenuScreen>()
+    }
+
+    private fun clearLevel() {
         if (containsScreen<LevelScreen>()) {
             removeScreen<LevelScreen>()
         }
-        addScreen(LevelScreen(levelDefinition, defs))
-        setScreen<LevelScreen>()
     }
 }

@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.github.quillraven.fleks.World
+import io.github.fourlastor.jamjam.JamGame
 import io.github.fourlastor.jamjam.level.system.BodiesListener
 import io.github.fourlastor.jamjam.level.system.Box2dComponent
 import io.github.fourlastor.jamjam.level.system.LayerComponent
@@ -20,6 +21,7 @@ import ktx.box2d.earthGravity
 import ktx.graphics.center
 
 class LevelScreen(
+    private val game: JamGame,
     private val levelDefinition: LDtkLevelDefinition,
     definitions: Definitions
 ) : KtxScreen {
@@ -74,6 +76,9 @@ class LevelScreen(
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
             camera.translate(factor, 0f, 0f)
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)) {
+            game.goToMenu()
         }
     }
 
