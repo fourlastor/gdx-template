@@ -8,7 +8,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.collection.compareEntity
 import io.github.fourlastor.jamjam.level.WorldLevel
-import ktx.app.clearScreen
 import ktx.graphics.use
 
 @AllOf([LayerComponent::class])
@@ -24,7 +23,6 @@ class RenderSystem(
     private val batch = SpriteBatch()
 
     override fun onTick() {
-        clearScreen(0.3f, 0.3f, 0.3f)
         batch.use(camera) { super.onTick() }
     }
 
