@@ -3,6 +3,8 @@ package io.github.fourlastor.jamjam.level
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.math.Rectangle
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.github.quillraven.fleks.World
 import io.github.fourlastor.jamjam.JamGame
@@ -38,7 +40,7 @@ class LevelScreen(
 
     private val box2dWorld = createWorld(gravity = earthGravity)
 
-    private val debug = false
+    private val debug = true
 
     private val world =
         World {
@@ -67,10 +69,23 @@ class LevelScreen(
                 }
 
                 entity { add<Box2dComponent> { boxes = level.statics.staticBodies } }
-                entity { add<SpriteComponent> {
-                    priority = level.player.layerIndex
-                    sprite = level.player.sprite
-                } }
+                level.player.also { player ->
+                    entity {
+                        add<SpriteComponent> {
+                            priority = player.layerIndex
+                            sprite = player.sprite
+                        }
+                        add<Box2dComponent> {
+                            val sprite = player.sprite
+                            boxes = listOf(
+                                Rectangle(sprite.boundingRectangle).apply {
+                                    width *= 0.35f
+                                    setCenter(sprite.boundingRectangle.getCenter(Vector2()))
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
     override fun show() {
