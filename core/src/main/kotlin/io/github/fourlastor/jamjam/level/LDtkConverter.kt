@@ -8,11 +8,40 @@ import io.github.fourlastor.ldtk.LDtkLayerInstance
 import io.github.fourlastor.ldtk.LDtkLevelDefinition
 
 class LDtkConverter(private val scale: Float) {
-    fun convert(levelDefinition: LDtkLevelDefinition, definitions: Definitions): WorldLevel = WorldLevel(
-        layers = levelDefinition.layerInstances.orEmpty().reversed()
-            .mapIndexedNotNull { i, it -> it.toLayer(i, definitions) },
-        boxes = levelDefinition.layerInstances?.firstOrNull { it.type == "IntGrid" }
-            .toBoxes()
+
+    fun convert(levelDefinition: LDtkLevelDefinition, definitions: Definitions): Level = Level(
+        statics = LevelStatics(
+            spriteLayers = levelDefinition.layerInstances.orEmpty().reversed()
+                .mapIndexedNotNull { i, it -> it.toLayer(i, definitions) },
+            staticBodies = levelDefinition.layerInstances?.firstOrNull { it.type == "IntGrid" }
+                .toBoxes()
+        ),
+        player = levelDefinition.layerInstances.orEmpty()
+            .let { layerInstances ->
+                layerInstances
+                    .indexOfFirst { it.type == "Entities" }
+                    .let { checkNotNull(it.takeIf { it >= 0 }) { "Entities layer missing from level." } }
+                    .let { layerIndex ->
+                        val layer = layerInstances[layerIndex]
+                        layer.entityInstances
+                            .firstOrNull { it.identifier == "Player" }
+                            .let { checkNotNull(it) { "Player missing from entity layer." } }
+                            .let {
+                                val atlas = TextureAtlas(Gdx.files.internal("entities.atlas"))
+                                Player(
+                                    atlas = atlas,
+                                    sprite =  atlas.createSprite("player-stand").apply {
+                                        setOrigin(0f, 0f)
+                                        setScale(scale)
+                                        setPosition(it.px[0] * scale, it.px[1] * scale)
+                                        flip(false, true)
+                                    },
+                                    layerIndex = layerIndex
+                                )
+                            }
+                    }
+
+            }
     )
 
     /** Converts an IntGrid layer to definitions used in the physics world. */
@@ -30,31 +59,15 @@ class LDtkConverter(private val scale: Float) {
             }
     }.orEmpty()
 
-    /** Converts an AutoLayer to a renderable [WorldLevel.Layer]. */
-    private fun LDtkLayerInstance.toLayer(position: Int, definitions: Definitions): WorldLevel.Layer? =
+    private fun LDtkLayerInstance.toLayer(position: Int, definitions: Definitions): SpriteLayer? =
         when (type) {
-            "Entities" -> {
-                val atlas = TextureAtlas(Gdx.files.internal("entities.atlas"))
-                WorldLevel.Layer.SpriteLayer(
-                    position,
-                    atlas,
-                    entityInstances.map {
-                        atlas.createSprite("player-stand").apply {
-                            setOrigin(0f, 0f)
-                            setScale(scale)
-                            setPosition(it.px[0] * scale, it.px[1] * scale)
-                            flip(false, true)
-                        }
-                    }
-                )
-            }
             "AutoLayer" -> {
                 val atlas = TextureAtlas(Gdx.files.internal("tiles.atlas"))
                 definitions.tilesets.find { it.uid == tilesetDefUid }
                     ?.let { tileset ->
-                        WorldLevel.Layer.SpriteLayer(
-                            position,
+                        SpriteLayer(
                             atlas,
+                            position,
                             autoLayerTiles.mapNotNull { tile ->
                                 tile.t
                                     .let { tileId -> tileset.customData.find { it.tileId == tileId } }

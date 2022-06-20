@@ -9,10 +9,10 @@ import io.github.fourlastor.jamjam.JamGame
 import io.github.fourlastor.jamjam.level.system.BodiesListener
 import io.github.fourlastor.jamjam.level.system.Box2dComponent
 import io.github.fourlastor.jamjam.level.system.InputSystem
-import io.github.fourlastor.jamjam.level.system.LayerComponent
 import io.github.fourlastor.jamjam.level.system.PhysicsDebugSystem
 import io.github.fourlastor.jamjam.level.system.PhysicsSystem
 import io.github.fourlastor.jamjam.level.system.RenderSystem
+import io.github.fourlastor.jamjam.level.system.SpriteComponent
 import io.github.fourlastor.ldtk.Definitions
 import io.github.fourlastor.ldtk.LDtkLevelDefinition
 import ktx.app.KtxScreen
@@ -22,11 +22,12 @@ import ktx.graphics.center
 
 class LevelScreen(
     private val game: JamGame,
-    private val levelDefinition: LDtkLevelDefinition,
+    levelDefinition: LDtkLevelDefinition,
     definitions: Definitions
 ) : KtxScreen {
 
-    private val level = LDtkConverter(1f / 16f).convert(this.levelDefinition, definitions)
+    private val converter = LDtkConverter(1f / 16f)
+    private val level = converter.convert(levelDefinition, definitions)
 
     private val camera = OrthographicCamera().apply {
         setToOrtho(true)
@@ -54,10 +55,22 @@ class LevelScreen(
             }
         }
             .apply {
-                level.layers.forEach { gameLayer ->
-                    entity { add<LayerComponent> { layer = gameLayer } }
+                level.statics.spriteLayers.forEach { layer ->
+                    layer.tiles.forEach {  tileSprite ->
+                        entity {
+                            add<SpriteComponent> {
+                                priority = layer.layerIndex
+                                sprite = tileSprite
+                            }
+                        }
+                    }
                 }
-                entity { add<Box2dComponent> { boxes = level.boxes } }
+
+                entity { add<Box2dComponent> { boxes = level.statics.staticBodies } }
+                entity { add<SpriteComponent> {
+                    priority = level.player.layerIndex
+                    sprite = level.player.sprite
+                } }
             }
 
     override fun show() {
@@ -78,6 +91,7 @@ class LevelScreen(
 
     override fun dispose() {
         world.dispose()
+        box2dWorld.dispose()
         level.dispose()
     }
 }

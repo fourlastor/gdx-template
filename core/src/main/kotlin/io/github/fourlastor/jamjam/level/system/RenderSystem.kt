@@ -1,23 +1,23 @@
 package io.github.fourlastor.jamjam.level.system
 
 import com.badlogic.gdx.graphics.Camera
+import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.github.quillraven.fleks.AllOf
 import com.github.quillraven.fleks.ComponentMapper
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.collection.compareEntity
-import io.github.fourlastor.jamjam.level.WorldLevel
 import ktx.graphics.use
 
-@AllOf([LayerComponent::class])
+@AllOf([SpriteComponent::class])
 class RenderSystem(
-    private val layers: ComponentMapper<LayerComponent>,
+    private val sprites: ComponentMapper<SpriteComponent>,
     private val camera: Camera,
 ) :
     IteratingSystem(
         compareEntity { entity, entity2 ->
-            layers[entity].order.compareTo(layers[entity2].order)
+            sprites[entity].priority.compareTo(sprites[entity2].priority)
         }) {
 
     private val batch = SpriteBatch()
@@ -27,7 +27,7 @@ class RenderSystem(
     }
 
     override fun onTickEntity(entity: Entity) {
-        layers[entity].layer.render(batch)
+        sprites[entity].sprite.draw(batch)
     }
 
     override fun onDispose() {
@@ -35,9 +35,7 @@ class RenderSystem(
     }
 }
 
-class LayerComponent {
-    lateinit var layer: WorldLevel.Layer
-
-    val order: Int
-        get() = layer.order
+class SpriteComponent {
+    lateinit var sprite: Sprite
+    var priority: Int = -1
 }
