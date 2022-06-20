@@ -69,7 +69,6 @@ class LevelScreen(
     }
 
     override fun render(delta: Float) {
-        camera.update()
         world.update(delta)
     }
 
