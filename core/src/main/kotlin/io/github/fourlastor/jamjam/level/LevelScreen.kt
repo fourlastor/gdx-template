@@ -16,6 +16,7 @@ import io.github.fourlastor.jamjam.level.system.PhysicsSystem
 import io.github.fourlastor.jamjam.level.system.PlayerComponent
 import io.github.fourlastor.jamjam.level.system.RenderSystem
 import io.github.fourlastor.jamjam.level.system.SpriteComponent
+import io.github.fourlastor.jamjam.level.system.SpriteFollowBodySystem
 import io.github.fourlastor.jamjam.level.system.StaticBodyComponent
 import io.github.fourlastor.jamjam.level.system.StaticBodyListener
 import io.github.fourlastor.ldtk.Definitions
@@ -55,14 +56,16 @@ class LevelScreen(
             inject(PhysicsSystem.Config(step = 1f / 60f))
             system<InputSystem>()
             system<PhysicsSystem>()
+            system<SpriteFollowBodySystem>()
             system<RenderSystem>()
             if (debug) {
                 system<PhysicsDebugSystem>()
             }
         }
             .apply {
-                level.statics.spriteLayers.forEach { layer ->
-                    layer.tiles.forEach {  tileSprite ->
+                val statics = level.statics
+                statics.spriteLayers.forEach { layer ->
+                    layer.tiles.forEach { tileSprite ->
                         entity {
                             add<SpriteComponent> {
                                 priority = layer.layerIndex
@@ -72,7 +75,7 @@ class LevelScreen(
                     }
                 }
 
-                entity { add<StaticBodyComponent> { boxes = level.statics.staticBodies } }
+                statics.staticBodies.forEach { boxBody -> entity { add<StaticBodyComponent> { box = boxBody } } }
                 level.player.also { player ->
                     entity {
                         add<PlayerComponent>()
@@ -82,12 +85,10 @@ class LevelScreen(
                         }
                         add<KinematicBodyComponent> {
                             val sprite = player.sprite
-                            boxes = listOf(
-                                Rectangle(sprite.boundingRectangle).apply {
-                                    width *= 0.35f
-                                    setCenter(sprite.boundingRectangle.getCenter(Vector2()))
-                                }
-                            )
+                            box = Rectangle(sprite.boundingRectangle).apply {
+                                width *= 0.35f
+                                setCenter(sprite.boundingRectangle.getCenter(Vector2()))
+                            }
                         }
                     }
                 }

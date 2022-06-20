@@ -1,7 +1,6 @@
 package io.github.fourlastor.jamjam.level.system
 
 import com.badlogic.gdx.math.Rectangle
-import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType
 import com.badlogic.gdx.physics.box2d.World
@@ -34,16 +33,15 @@ abstract class BodyListener<T: BodyComponent>(
 
     override fun onComponentAdded(entity: Entity, component: T) {
         component.body = box2dWorld.body(type = bodyType) {
-            component.boxes.forEach { box ->
-                box(
-                    width = box.width,
-                    height = box.height,
-                    position = Vector2(
-                        box.x + box.width / 2,
-                        box.y + box.height / 2
-                    )
-                )
+            val box = component.box
+            position.apply {
+                x = box.x + box.width / 2
+                y = box.y + box.height / 2
             }
+            box(
+                width = box.width,
+                height = box.height,
+            )
         }
     }
 
@@ -62,15 +60,15 @@ class KinematicBodyListener(box2dWorld: World) : BodyListener<KinematicBodyCompo
 
 interface BodyComponent {
     var body: Body
-    var boxes: List<Rectangle>
+    var box: Rectangle
 }
 
 class StaticBodyComponent: BodyComponent {
-    override lateinit var boxes: List<Rectangle>
+    override lateinit var box: Rectangle
     override lateinit var body: Body
 }
 
 class KinematicBodyComponent: BodyComponent {
-    override lateinit var boxes: List<Rectangle>
+    override lateinit var box: Rectangle
     override lateinit var body: Body
 }
