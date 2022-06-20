@@ -33,6 +33,21 @@ class LDtkConverter(private val scale: Float) {
     /** Converts an AutoLayer to a renderable [WorldLevel.Layer]. */
     private fun LDtkLayerInstance.toLayer(position: Int, definitions: Definitions): WorldLevel.Layer? =
         when (type) {
+            "Entities" -> {
+                val atlas = TextureAtlas(Gdx.files.internal("entities.atlas"))
+                WorldLevel.Layer.SpriteLayer(
+                    position,
+                    atlas,
+                    entityInstances.map {
+                        atlas.createSprite("player-stand").apply {
+                            setOrigin(0f, 0f)
+                            setScale(scale)
+                            setPosition(it.px[0] * scale, it.px[1] * scale)
+                            flip(false, true)
+                        }
+                    }
+                )
+            }
             "AutoLayer" -> {
                 val atlas = TextureAtlas(Gdx.files.internal("tiles.atlas"))
                 definitions.tilesets.find { it.uid == tilesetDefUid }
