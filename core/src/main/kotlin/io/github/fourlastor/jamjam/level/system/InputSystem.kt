@@ -2,16 +2,19 @@ package io.github.fourlastor.jamjam.level.system
 
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
-import com.badlogic.gdx.graphics.Camera
-import com.github.quillraven.fleks.IntervalSystem
+import com.badlogic.gdx.physics.box2d.Body
+import com.github.quillraven.fleks.AllOf
+import com.github.quillraven.fleks.ComponentMapper
+import com.github.quillraven.fleks.Entity
+import com.github.quillraven.fleks.IteratingSystem
 import io.github.fourlastor.jamjam.JamGame
 import ktx.app.KtxInputAdapter
-import ktx.graphics.update
 
+@AllOf([PlayerComponent::class, KinematicBodyComponent::class])
 class InputSystem(
-    private val camera: Camera,
     private val game: JamGame,
-) : IntervalSystem() {
+    private val bodies: ComponentMapper<KinematicBodyComponent>,
+) : IteratingSystem() {
 
     private var state = Movement.STANDING
 
@@ -47,25 +50,29 @@ class InputSystem(
         }
     }
 
-    override fun onTick() {
-        state.move(camera, deltaTime * 10)
+    override fun onTickEntity(entity: Entity) {
+        state.move(bodies[entity].body, deltaTime * 10)
     }
 
     private enum class Movement(val key: Int?) {
         STANDING(null) {
-            override fun move(camera: Camera, factor: Float) = Unit
+            override fun move(body: Body, factor: Float) {
+                body.setLinearVelocity(0f, 0f)
+            }
         },
         LEFT(Input.Keys.A) {
-            override fun move(camera: Camera, factor: Float) {
-                camera.update { translate(-factor, 0f, 0f) }
+            override fun move(body: Body, factor: Float) {
+                body.setLinearVelocity(-3f, 0f)
             }
         },
         RIGHT(Input.Keys.D) {
-            override fun move(camera: Camera, factor: Float) {
-                camera.update { translate(factor, 0f, 0f) }
+            override fun move(body: Body, factor: Float) {
+                body.setLinearVelocity(3f, 0f)
             }
         };
 
-        abstract fun move(camera: Camera, factor: Float)
+        abstract fun move(body: Body, factor: Float)
     }
 }
+
+class PlayerComponent

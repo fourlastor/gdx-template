@@ -8,13 +8,16 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.github.quillraven.fleks.World
 import io.github.fourlastor.jamjam.JamGame
-import io.github.fourlastor.jamjam.level.system.BodiesListener
-import io.github.fourlastor.jamjam.level.system.Box2dComponent
 import io.github.fourlastor.jamjam.level.system.InputSystem
+import io.github.fourlastor.jamjam.level.system.KinematicBodyComponent
+import io.github.fourlastor.jamjam.level.system.KinematicBodyListener
 import io.github.fourlastor.jamjam.level.system.PhysicsDebugSystem
 import io.github.fourlastor.jamjam.level.system.PhysicsSystem
+import io.github.fourlastor.jamjam.level.system.PlayerComponent
 import io.github.fourlastor.jamjam.level.system.RenderSystem
 import io.github.fourlastor.jamjam.level.system.SpriteComponent
+import io.github.fourlastor.jamjam.level.system.StaticBodyComponent
+import io.github.fourlastor.jamjam.level.system.StaticBodyListener
 import io.github.fourlastor.ldtk.Definitions
 import io.github.fourlastor.ldtk.LDtkLevelDefinition
 import ktx.app.KtxScreen
@@ -47,7 +50,8 @@ class LevelScreen(
             inject<Camera>(viewport.camera)
             inject(box2dWorld)
             inject(game)
-            componentListener<BodiesListener>()
+            componentListener<StaticBodyListener>()
+            componentListener<KinematicBodyListener>()
             inject(PhysicsSystem.Config(step = 1f / 60f))
             system<InputSystem>()
             system<PhysicsSystem>()
@@ -68,14 +72,15 @@ class LevelScreen(
                     }
                 }
 
-                entity { add<Box2dComponent> { boxes = level.statics.staticBodies } }
+                entity { add<StaticBodyComponent> { boxes = level.statics.staticBodies } }
                 level.player.also { player ->
                     entity {
+                        add<PlayerComponent>()
                         add<SpriteComponent> {
                             priority = player.layerIndex
                             sprite = player.sprite
                         }
-                        add<Box2dComponent> {
+                        add<KinematicBodyComponent> {
                             val sprite = player.sprite
                             boxes = listOf(
                                 Rectangle(sprite.boundingRectangle).apply {
