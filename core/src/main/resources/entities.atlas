@@ -1,0 +1,20 @@
+
+entities.png
+size: 32, 32
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+player-run
+  rotate: false
+  xy: 2, 3
+  size: 11, 14
+  orig: 11, 14
+  offset: 0, 0
+  index: -1
+player-stand
+  rotate: false
+  xy: 15, 2
+  size: 6, 15
+  orig: 6, 15
+  offset: 0, 0
+  index: -1
