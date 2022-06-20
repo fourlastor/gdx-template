@@ -37,6 +37,8 @@ class LevelScreen(
 
     private val box2dWorld = createWorld(gravity = earthGravity)
 
+    private val debug = false
+
     private val world =
         World {
             inject<Camera>(viewport.camera)
@@ -47,7 +49,9 @@ class LevelScreen(
             system<InputSystem>()
             system<PhysicsSystem>()
             system<RenderSystem>()
-            system<PhysicsDebugSystem>()
+            if (debug) {
+                system<PhysicsDebugSystem>()
+            }
         }
             .apply {
                 level.layers.forEach { gameLayer ->
