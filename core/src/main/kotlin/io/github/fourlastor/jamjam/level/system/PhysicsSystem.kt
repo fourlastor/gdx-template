@@ -10,6 +10,8 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IntervalSystem
 import ktx.box2d.body
 import ktx.box2d.box
+import ktx.box2d.chain
+import ktx.math.vec2
 
 class PhysicsSystem(
     private val config: Config,
@@ -25,14 +27,31 @@ class PhysicsSystem(
     )
 }
 
-abstract class BodyListener<T: BodyComponent>(
+class StaticBodyListener(private val box2dWorld: World): ComponentListener<StaticBodyComponent> {
+
+    override fun onComponentAdded(entity: Entity, component: StaticBodyComponent) {
+        component.body = box2dWorld.body(type = BodyType.StaticBody) {
+            component.boxes.forEach { box ->
+                chain(
+                    vec2(box.x, box.y),
+                    vec2(box.x + box.width, box.y),
+                    vec2(box.x + box.width, box.y + box.height),
+                    vec2(box.x, box.y + box.height),
+                )
+
+            }
+        }
+    }
+
+    override fun onComponentRemoved(entity: Entity, component: StaticBodyComponent) = Unit
+}
+
+class DynamicBodyListener(
     private val box2dWorld: World,
-): ComponentListener<T> {
+) : ComponentListener<DynamicBodyComponent> {
 
-    abstract val bodyType: BodyType
-
-    override fun onComponentAdded(entity: Entity, component: T) {
-        component.body = box2dWorld.body(type = bodyType) {
+    override fun onComponentAdded(entity: Entity, component: DynamicBodyComponent) {
+        component.body = box2dWorld.body(type = BodyType.DynamicBody) {
             val box = component.box
             position.apply {
                 x = box.x + box.width / 2
@@ -45,30 +64,15 @@ abstract class BodyListener<T: BodyComponent>(
         }
     }
 
-    override fun onComponentRemoved(entity: Entity, component: T) = Unit
+    override fun onComponentRemoved(entity: Entity, component: DynamicBodyComponent) = Unit
 }
 
-class StaticBodyListener(box2dWorld: World) : BodyListener<StaticBodyComponent>(box2dWorld), ComponentListener<StaticBodyComponent> {
-    override val bodyType: BodyType
-        get() = BodyType.StaticBody
+class StaticBodyComponent {
+    lateinit var boxes: List<Rectangle>
+    lateinit var body: Body
 }
 
-class KinematicBodyListener(box2dWorld: World) : BodyListener<KinematicBodyComponent>(box2dWorld), ComponentListener<KinematicBodyComponent> {
-    override val bodyType: BodyType
-        get() = BodyType.KinematicBody
-}
-
-interface BodyComponent {
-    var body: Body
-    var box: Rectangle
-}
-
-class StaticBodyComponent: BodyComponent {
-    override lateinit var box: Rectangle
-    override lateinit var body: Body
-}
-
-class KinematicBodyComponent: BodyComponent {
-    override lateinit var box: Rectangle
-    override lateinit var body: Body
+class DynamicBodyComponent {
+    lateinit var box: Rectangle
+    lateinit var body: Body
 }

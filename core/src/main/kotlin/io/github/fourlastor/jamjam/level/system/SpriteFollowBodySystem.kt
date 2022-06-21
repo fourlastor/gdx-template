@@ -6,9 +6,9 @@ import com.github.quillraven.fleks.ComponentMapper
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 
-@AllOf([KinematicBodyComponent::class, SpriteComponent::class])
+@AllOf([DynamicBodyComponent::class, SpriteComponent::class])
 class SpriteFollowBodySystem(
-    private val bodies: ComponentMapper<KinematicBodyComponent>,
+    private val bodies: ComponentMapper<DynamicBodyComponent>,
     private val sprites: ComponentMapper<SpriteComponent>,
 ) : IteratingSystem() {
     override fun onTickEntity(entity: Entity) {

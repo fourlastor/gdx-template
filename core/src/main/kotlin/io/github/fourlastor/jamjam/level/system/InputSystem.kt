@@ -10,10 +10,10 @@ import com.github.quillraven.fleks.IteratingSystem
 import io.github.fourlastor.jamjam.JamGame
 import ktx.app.KtxInputAdapter
 
-@AllOf([PlayerComponent::class, KinematicBodyComponent::class])
+@AllOf([PlayerComponent::class, DynamicBodyComponent::class])
 class InputSystem(
     private val game: JamGame,
-    private val bodies: ComponentMapper<KinematicBodyComponent>,
+    private val bodies: ComponentMapper<DynamicBodyComponent>,
 ) : IteratingSystem() {
 
     private var state = Movement.STANDING

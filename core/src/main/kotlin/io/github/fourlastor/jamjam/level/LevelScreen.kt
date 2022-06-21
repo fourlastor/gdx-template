@@ -9,9 +9,9 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 import com.github.quillraven.fleks.World
 import io.github.fourlastor.jamjam.JamGame
 import io.github.fourlastor.jamjam.level.system.CameraFollowPlayerSystem
+import io.github.fourlastor.jamjam.level.system.DynamicBodyComponent
+import io.github.fourlastor.jamjam.level.system.DynamicBodyListener
 import io.github.fourlastor.jamjam.level.system.InputSystem
-import io.github.fourlastor.jamjam.level.system.KinematicBodyComponent
-import io.github.fourlastor.jamjam.level.system.KinematicBodyListener
 import io.github.fourlastor.jamjam.level.system.PhysicsDebugSystem
 import io.github.fourlastor.jamjam.level.system.PhysicsSystem
 import io.github.fourlastor.jamjam.level.system.PlayerComponent
@@ -24,7 +24,6 @@ import io.github.fourlastor.ldtk.Definitions
 import io.github.fourlastor.ldtk.LDtkLevelDefinition
 import ktx.app.KtxScreen
 import ktx.box2d.createWorld
-import ktx.box2d.earthGravity
 import ktx.graphics.center
 
 class LevelScreen(
@@ -53,7 +52,7 @@ class LevelScreen(
             inject(box2dWorld)
             inject(game)
             componentListener<StaticBodyListener>()
-            componentListener<KinematicBodyListener>()
+            componentListener<DynamicBodyListener>()
             inject(PhysicsSystem.Config(step = 1f / 60f))
             system<InputSystem>()
             system<PhysicsSystem>()
@@ -76,8 +75,8 @@ class LevelScreen(
                         }
                     }
                 }
+                entity { add<StaticBodyComponent> { boxes = statics.staticBodies } }
 
-                statics.staticBodies.forEach { boxBody -> entity { add<StaticBodyComponent> { box = boxBody } } }
                 level.player.also { player ->
                     entity {
                         add<PlayerComponent>()
@@ -85,7 +84,7 @@ class LevelScreen(
                             priority = player.layerIndex
                             sprite = player.sprite
                         }
-                        add<KinematicBodyComponent> {
+                        add<DynamicBodyComponent> {
                             val sprite = player.sprite
                             box = Rectangle(sprite.boundingRectangle).apply {
                                 width *= 0.35f
