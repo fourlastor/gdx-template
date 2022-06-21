@@ -1,4 +1,4 @@
-package io.github.fourlastor.jamjam.level.system
+package io.github.fourlastor.jamjam.extension
 
 import com.artemis.BaseEntitySystem
 import com.artemis.Component

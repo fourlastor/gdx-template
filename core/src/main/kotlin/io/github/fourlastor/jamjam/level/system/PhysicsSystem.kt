@@ -1,12 +1,12 @@
 package io.github.fourlastor.jamjam.level.system
 
-import com.artemis.Component
 import com.artemis.ComponentMapper
 import com.artemis.annotations.One
-import com.badlogic.gdx.math.Rectangle
-import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType
 import com.badlogic.gdx.physics.box2d.World
+import io.github.fourlastor.jamjam.extension.BaseEntityIntervalSystem
+import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
+import io.github.fourlastor.jamjam.level.component.StaticBodyComponent
 import ktx.box2d.body
 import ktx.box2d.box
 import ktx.box2d.chain
@@ -67,14 +67,4 @@ class PhysicsSystem(
     data class Config(
         val step: Float,
     )
-}
-
-class StaticBodyComponent : Component() {
-    lateinit var boxes: List<Rectangle>
-    lateinit var body: Body
-}
-
-class DynamicBodyComponent : Component() {
-    lateinit var box: Rectangle
-    lateinit var body: Body
 }

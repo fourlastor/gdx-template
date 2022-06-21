@@ -1,12 +1,11 @@
 package io.github.fourlastor.jamjam.level.system
 
 import com.artemis.BaseEntitySystem
-import com.artemis.Component
 import com.artemis.ComponentMapper
 import com.artemis.annotations.All
 import com.badlogic.gdx.graphics.Camera
-import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import io.github.fourlastor.jamjam.level.component.SpriteComponent
 import ktx.graphics.use
 
 @All(SpriteComponent::class)
@@ -35,9 +34,4 @@ class RenderSystem(
     override fun dispose() {
         batch.dispose()
     }
-}
-
-class SpriteComponent : Component() {
-    lateinit var sprite: Sprite
-    var priority: Int = -1
 }
