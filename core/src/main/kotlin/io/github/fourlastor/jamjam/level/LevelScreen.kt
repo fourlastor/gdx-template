@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.github.quillraven.fleks.World
 import io.github.fourlastor.jamjam.JamGame
+import io.github.fourlastor.jamjam.level.system.CameraFollowPlayerSystem
 import io.github.fourlastor.jamjam.level.system.InputSystem
 import io.github.fourlastor.jamjam.level.system.KinematicBodyComponent
 import io.github.fourlastor.jamjam.level.system.KinematicBodyListener
@@ -57,6 +58,7 @@ class LevelScreen(
             system<InputSystem>()
             system<PhysicsSystem>()
             system<SpriteFollowBodySystem>()
+            system<CameraFollowPlayerSystem>()
             system<RenderSystem>()
             if (debug) {
                 system<PhysicsDebugSystem>()
