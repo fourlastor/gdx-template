@@ -43,7 +43,7 @@ class LevelScreen(
         camera.center(it.worldWidth, it.worldHeight)
     }
 
-    private val box2dWorld = createWorld(gravity = earthGravity)
+    private val box2dWorld = createWorld(gravity = Vector2(0f, 10f))
 
     private val debug = true
 
