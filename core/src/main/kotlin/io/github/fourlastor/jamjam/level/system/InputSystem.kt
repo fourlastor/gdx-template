@@ -1,20 +1,20 @@
 package io.github.fourlastor.jamjam.level.system
 
+import com.artemis.Component
+import com.artemis.ComponentMapper
+import com.artemis.annotations.All
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.physics.box2d.Body
-import com.github.quillraven.fleks.AllOf
-import com.github.quillraven.fleks.ComponentMapper
-import com.github.quillraven.fleks.Entity
-import com.github.quillraven.fleks.IteratingSystem
 import io.github.fourlastor.jamjam.JamGame
 import ktx.app.KtxInputAdapter
 
-@AllOf([PlayerComponent::class, DynamicBodyComponent::class])
+@All(PlayerComponent::class, DynamicBodyComponent::class)
 class InputSystem(
     private val game: JamGame,
-    private val bodies: ComponentMapper<DynamicBodyComponent>,
-) : IteratingSystem() {
+) : SingleEntitySystem() {
+
+    private lateinit var bodies: ComponentMapper<DynamicBodyComponent>
 
     private var state = Movement.STANDING
 
@@ -50,29 +50,30 @@ class InputSystem(
         }
     }
 
-    override fun onTickEntity(entity: Entity) {
-        state.move(bodies[entity].body, deltaTime * 10)
+    override fun processSystem() {
+        val entity = entity ?: return
+        state.move(bodies[entity].body)
     }
 
     private enum class Movement(val key: Int?) {
         STANDING(null) {
-            override fun move(body: Body, factor: Float) {
+            override fun move(body: Body) {
                 body.setLinearVelocity(0f, 0f)
             }
         },
         LEFT(Input.Keys.A) {
-            override fun move(body: Body, factor: Float) {
+            override fun move(body: Body) {
                 body.setLinearVelocity(-3f, 0f)
             }
         },
         RIGHT(Input.Keys.D) {
-            override fun move(body: Body, factor: Float) {
+            override fun move(body: Body) {
                 body.setLinearVelocity(3f, 0f)
             }
         };
 
-        abstract fun move(body: Body, factor: Float)
+        abstract fun move(body: Body)
     }
 }
 
-class PlayerComponent
+class PlayerComponent: Component()

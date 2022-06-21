@@ -14,8 +14,8 @@ spotless {
 @Suppress("UnstableApiUsage")
 dependencies {
     api(project(":ldtk"))
+    api(libs.artemis)
     api(libs.controllers)
-    api(libs.fleks)
     api(libs.gdx)
     api(libs.gdxAi)
     api(libs.gdxBox2d)

@@ -1,25 +1,67 @@
 package io.github.fourlastor.jamjam.level.system
 
+import com.artemis.Component
+import com.artemis.ComponentMapper
+import com.artemis.annotations.One
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType
 import com.badlogic.gdx.physics.box2d.World
-import com.github.quillraven.fleks.ComponentListener
-import com.github.quillraven.fleks.Entity
-import com.github.quillraven.fleks.Fixed
-import com.github.quillraven.fleks.IntervalSystem
 import ktx.box2d.body
 import ktx.box2d.box
 import ktx.box2d.chain
 import ktx.math.vec2
 
+@One(StaticBodyComponent::class, DynamicBodyComponent::class)
 class PhysicsSystem(
     private val config: Config,
     private val box2dWorld: World,
-) : IntervalSystem(interval = Fixed(config.step)) {
+) : BaseEntityIntervalSystem(config.step) {
 
-    override fun onTick() {
+    private lateinit var statics: ComponentMapper<StaticBodyComponent>
+    private lateinit var dynamics: ComponentMapper<DynamicBodyComponent>
+
+    override fun processSystem() {
         box2dWorld.step(config.step, 6, 2)
+    }
+
+    override fun inserted(entityId: Int) {
+        when {
+            statics.has(entityId) -> {
+                val component = statics[entityId]
+                component.body = box2dWorld.body(type = BodyType.StaticBody) {
+                    component.boxes.forEach { box ->
+                        chain(
+                            vec2(box.x, box.y),
+                            vec2(box.x + box.width, box.y),
+                            vec2(box.x + box.width, box.y + box.height),
+                            vec2(box.x, box.y + box.height),
+                        )
+
+                    }
+                }
+            }
+
+            dynamics.has(entityId) -> {
+                val component = dynamics[entityId]
+                component.body = box2dWorld.body(type = BodyType.DynamicBody) {
+                    val box = component.box
+                    position.apply {
+                        x = box.x + box.width / 2
+                        y = box.y + box.height / 2
+                    }
+                    box(
+                        width = box.width,
+                        height = box.height,
+                    )
+                }
+            }
+        }
+    }
+
+    override fun removed(entityId: Int) {
+        super.removed(entityId)
+        // TODO destroy body
     }
 
     data class Config(
@@ -27,52 +69,12 @@ class PhysicsSystem(
     )
 }
 
-class StaticBodyListener(private val box2dWorld: World): ComponentListener<StaticBodyComponent> {
-
-    override fun onComponentAdded(entity: Entity, component: StaticBodyComponent) {
-        component.body = box2dWorld.body(type = BodyType.StaticBody) {
-            component.boxes.forEach { box ->
-                chain(
-                    vec2(box.x, box.y),
-                    vec2(box.x + box.width, box.y),
-                    vec2(box.x + box.width, box.y + box.height),
-                    vec2(box.x, box.y + box.height),
-                )
-
-            }
-        }
-    }
-
-    override fun onComponentRemoved(entity: Entity, component: StaticBodyComponent) = Unit
-}
-
-class DynamicBodyListener(
-    private val box2dWorld: World,
-) : ComponentListener<DynamicBodyComponent> {
-
-    override fun onComponentAdded(entity: Entity, component: DynamicBodyComponent) {
-        component.body = box2dWorld.body(type = BodyType.DynamicBody) {
-            val box = component.box
-            position.apply {
-                x = box.x + box.width / 2
-                y = box.y + box.height / 2
-            }
-            box(
-                width = box.width,
-                height = box.height,
-            )
-        }
-    }
-
-    override fun onComponentRemoved(entity: Entity, component: DynamicBodyComponent) = Unit
-}
-
-class StaticBodyComponent {
+class StaticBodyComponent : Component() {
     lateinit var boxes: List<Rectangle>
     lateinit var body: Body
 }
 
-class DynamicBodyComponent {
+class DynamicBodyComponent : Component() {
     lateinit var box: Rectangle
     lateinit var body: Body
 }

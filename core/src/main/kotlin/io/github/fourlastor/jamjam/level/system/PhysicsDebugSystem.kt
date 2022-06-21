@@ -1,22 +1,22 @@
 package io.github.fourlastor.jamjam.level.system
 
+import com.artemis.BaseSystem
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.physics.box2d.World
-import com.github.quillraven.fleks.IntervalSystem
 
 class PhysicsDebugSystem(
     private val camera: Camera,
     private val box2dWorld: World,
-) : IntervalSystem() {
+) : BaseSystem() {
 
     private val debugRenderer = Box2DDebugRenderer()
 
-    override fun onTick() {
+    override fun processSystem() {
         debugRenderer.render(box2dWorld, camera.combined)
     }
 
-    override fun onDispose() {
+    override fun dispose() {
         debugRenderer.dispose()
     }
 
