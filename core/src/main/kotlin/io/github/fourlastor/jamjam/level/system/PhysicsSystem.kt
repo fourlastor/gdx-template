@@ -9,7 +9,7 @@ import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
 import io.github.fourlastor.jamjam.level.component.StaticBodyComponent
 import ktx.box2d.body
 import ktx.box2d.box
-import ktx.box2d.chain
+import ktx.box2d.loop
 import ktx.math.vec2
 
 @One(StaticBodyComponent::class, DynamicBodyComponent::class)
@@ -31,13 +31,12 @@ class PhysicsSystem(
                 val component = statics[entityId]
                 component.body = box2dWorld.body(type = BodyType.StaticBody) {
                     component.boxes.forEach { box ->
-                        chain(
+                        loop(
                             vec2(box.x, box.y),
                             vec2(box.x + box.width, box.y),
                             vec2(box.x + box.width, box.y + box.height),
                             vec2(box.x, box.y + box.height),
                         )
-
                     }
                 }
             }
