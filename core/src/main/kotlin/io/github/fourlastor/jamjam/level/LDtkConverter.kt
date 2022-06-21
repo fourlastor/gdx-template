@@ -9,40 +9,41 @@ import io.github.fourlastor.ldtk.LDtkLevelDefinition
 
 class LDtkConverter(private val scale: Float) {
 
-    fun convert(levelDefinition: LDtkLevelDefinition, definitions: Definitions): Level = Level(
-        statics = LevelStatics(
-            spriteLayers = levelDefinition.layerInstances.orEmpty().reversed()
-                .mapIndexedNotNull { i, it -> it.toLayer(i, definitions) },
-            staticBodies = levelDefinition.layerInstances?.firstOrNull { it.type == "IntGrid" }
-                .toBoxes()
-        ),
-        player = levelDefinition.layerInstances.orEmpty()
-            .let { layerInstances ->
-                layerInstances
-                    .indexOfFirst { it.type == "Entities" }
-                    .let { checkNotNull(it.takeIf { it >= 0 }) { "Entities layer missing from level." } }
-                    .let { layerIndex ->
-                        val layer = layerInstances[layerIndex]
-                        layer.entityInstances
-                            .firstOrNull { it.identifier == "Player" }
-                            .let { checkNotNull(it) { "Player missing from entity layer." } }
-                            .let {
-                                val atlas = TextureAtlas(Gdx.files.internal("entities.atlas"))
-                                Player(
-                                    atlas = atlas,
-                                    sprite =  atlas.createSprite("player-stand").apply {
-                                        setOrigin(0f, 0f)
-                                        setScale(scale)
-                                        setPosition(it.px[0] * scale, it.px[1] * scale)
-                                        flip(false, true)
-                                    },
-                                    layerIndex = layerIndex
-                                )
-                            }
-                    }
+    fun convert(levelDefinition: LDtkLevelDefinition, definitions: Definitions): Level {
+        val layerInstances = levelDefinition.layerInstances.orEmpty().reversed()
+        return Level(
+            statics = LevelStatics(
+                spriteLayers = layerInstances
+                    .mapIndexedNotNull { i, it -> it.toLayer(i, definitions) },
+                staticBodies = layerInstances.firstOrNull { it.type == "IntGrid" }
+                    .toBoxes()
+            ),
+            player = layerInstances
+                .indexOfFirst { it.type == "Entities" }
+                .let { checkNotNull(it.takeIf { it >= 0 }) { "Entities layer missing from level." } }
+                .let { layerIndex ->
+                    val layer = layerInstances[layerIndex]
+                    layer.entityInstances
+                        .firstOrNull { it.identifier == "Player" }
+                        .let { checkNotNull(it) { "Player missing from entity layer." } }
+                        .let {
+                            val atlas = TextureAtlas(Gdx.files.internal("entities.atlas"))
+                            Player(
+                                atlas = atlas,
+                                sprite = atlas.createSprite("player-stand").apply {
+                                    setOrigin(0f, 0f)
+                                    setScale(scale)
+                                    setPosition(it.px[0] * scale, it.px[1] * scale)
+                                    flip(false, true)
+                                },
+                                layerIndex = layerIndex
+                            )
+                        }
+                }
 
-            }
-    )
+
+        )
+    }
 
     /** Converts an IntGrid layer to definitions used in the physics world. */
     private fun LDtkLayerInstance?.toBoxes(): List<Rectangle> = this?.run {
