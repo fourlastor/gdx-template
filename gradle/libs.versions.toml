@@ -19,5 +19,6 @@ ktxActors = { module = "io.github.libktx:ktx-actors", version.ref = "ktx" }
 ktxApp = { module = "io.github.libktx:ktx-app", version.ref = "ktx" }
 ktxBox2d = { module = "io.github.libktx:ktx-box2d", version.ref = "ktx" }
 ktxGraphics = { module = "io.github.libktx:ktx-graphics", version.ref = "ktx" }
+ktxMath = { module = "io.github.libktx:ktx-math", version.ref = "ktx" }
 ktxVis = { module = "io.github.libktx:ktx-vis", version.ref = "ktx" }
 serializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serializationJson" }

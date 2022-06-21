@@ -23,5 +23,6 @@ dependencies {
     api(libs.ktxApp)
     api(libs.ktxBox2d)
     api(libs.ktxGraphics)
+    api(libs.ktxMath)
     api(libs.ktxVis)
 }
