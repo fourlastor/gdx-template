@@ -47,12 +47,16 @@ class LDtkConverter(private val scale: Float) {
 
     /** Converts an IntGrid layer to definitions used in the physics world. */
     private fun LDtkLayerInstance?.toBoxes(): List<Rectangle> = this?.run {
+
+        fun Int.x() = (this % cWid).toFloat()
+        fun Int.y() = (this / cWid).toFloat()
+
         intGridCSV.orEmpty()
             .mapIndexedNotNull { index, i ->
                 index.takeIf { i == 1 }?.let {
                     Rectangle(
-                        (index % cWid).toFloat(),
-                        (index / cWid).toFloat(),
+                        index.x(),
+                        index.y(),
                         gridSize * scale,
                         gridSize * scale,
                     )
