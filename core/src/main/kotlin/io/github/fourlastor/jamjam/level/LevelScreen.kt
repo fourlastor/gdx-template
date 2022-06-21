@@ -118,7 +118,6 @@ class LevelScreen(
 
     override fun dispose() {
         world.dispose()
-        world.dispose()
         box2dWorld.dispose()
         level.dispose()
     }
