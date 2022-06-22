@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.FitViewport
-import io.github.fourlastor.jamjam.JamGame
 import io.github.fourlastor.jamjam.extension.component
 import io.github.fourlastor.jamjam.extension.create
 import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
@@ -26,7 +25,6 @@ import ktx.box2d.createWorld
 import ktx.graphics.center
 
 class LevelScreen(
-    game: JamGame,
     levelDefinition: LDtkLevelDefinition,
     definitions: Definitions
 ) : KtxScreen {
@@ -44,7 +42,7 @@ class LevelScreen(
     private val box2dWorld = createWorld(gravity = Vector2(0f, 10f))
 
     private val debug = true
-    private val inputSystem = InputSystem(game = game)
+    private val inputSystem = InputSystem()
 
     private val world = WorldConfigurationBuilder().with(
         inputSystem,

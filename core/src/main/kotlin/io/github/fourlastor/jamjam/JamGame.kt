@@ -23,7 +23,7 @@ class JamGame : KtxGame<Screen>() {
 
     fun startGame(levelDefinition: LDtkLevelDefinition, defs: Definitions) {
         clearLevel()
-        addScreen(LevelScreen(this, levelDefinition, defs))
+        addScreen(LevelScreen(levelDefinition, defs))
         setScreen<LevelScreen>()
     }
 
