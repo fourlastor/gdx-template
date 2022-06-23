@@ -26,13 +26,6 @@ class AssetFactory(private val scale: Float) : Disposable {
             }
     }
 
-    private val characterStanding by lazy {
-        atlas.createSprite("player_stand").scaleAtOrigin().apply {
-            flip(false, true)
-        }
-
-    }
-
     fun box(x: Float, y: Float, size: Float) = Rectangle(
         x * scale,
         y * scale,
@@ -43,13 +36,24 @@ class AssetFactory(private val scale: Float) : Disposable {
     fun playerBlueprint(x: Float, y: Float): Rectangle =
         Rectangle(x * scale, y * scale, 16f * scale, 16f * scale)
 
-    fun characterStanding(): Sprite = characterStanding
-
-    private val characterRunning by lazy {
-        atlas.createSprites("player_run").also {
-            it.forEach { it.scaleAtOrigin() }
+    private val characterStanding by lazy {
+        atlas.createSprites("player_stand").onEach {
+            it.scaleAtOrigin()
+            it.flip(false, true)
         }.let {
             Animation(0.033f, it, Animation.PlayMode.LOOP)
+        }
+
+    }
+
+    fun characterStanding(): Animation<Sprite> = characterStanding
+
+    private val characterRunning by lazy {
+        atlas.createSprites("player_run").onEach {
+            it.scaleAtOrigin()
+            it.flip(false, true)
+        }.let {
+            Animation(0.15f, it, Animation.PlayMode.LOOP)
         }
     }
 

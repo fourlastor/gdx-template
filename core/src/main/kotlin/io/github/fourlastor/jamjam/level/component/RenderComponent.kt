@@ -4,13 +4,10 @@ import com.artemis.Component
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.g2d.TextureAtlas
-import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Rectangle
 
 class RenderComponent: Component() {
     lateinit var render: Render
-    lateinit var atlas: TextureAtlas
 }
 
 
@@ -40,13 +37,9 @@ sealed class Render {
     }
 
     class AnimationRender(
-        private val animation: Animation<TextureRegion>,
+        private val animation: Animation<Sprite>,
         override val dimensions: Rectangle,
     ): Render() {
-
-        init {
-            animation.keyFrames.forEach { it.flip(false, true) }
-        }
 
         private var delta: Float = 0f
         override fun draw(batch: SpriteBatch) {

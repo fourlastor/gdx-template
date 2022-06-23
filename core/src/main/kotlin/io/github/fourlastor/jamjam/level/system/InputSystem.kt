@@ -8,8 +8,9 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.graphics.g2d.Animation
-import com.badlogic.gdx.graphics.g2d.Animation.PlayMode
+import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.math.Rectangle
+import io.github.fourlastor.jamjam.AssetFactory
 import io.github.fourlastor.jamjam.extension.State
 import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
 import io.github.fourlastor.jamjam.level.component.PlayerComponent
@@ -18,7 +19,9 @@ import io.github.fourlastor.jamjam.level.component.RenderComponent
 import ktx.app.KtxInputAdapter
 
 @All(PlayerComponent::class, DynamicBodyComponent::class, RenderComponent::class)
-class InputSystem : IteratingSystem() {
+class InputSystem(
+    private val factory: AssetFactory,
+) : IteratingSystem() {
 
     private lateinit var bodies: ComponentMapper<DynamicBodyComponent>
     private lateinit var players: ComponentMapper<PlayerComponent>
@@ -52,8 +55,14 @@ class InputSystem : IteratingSystem() {
 
     override fun inserted(entityId: Int) {
         val player = players[entityId]
-        player.idle = InputState.Idle(renders, players, bodies)
-        player.run = InputState.Run(renders, players, bodies)
+        val dependencies = InputState.Dependencies(
+            renders,
+            players,
+            bodies,
+            factory,
+        )
+        player.idle = InputState.Idle(dependencies)
+        player.run = InputState.Run(dependencies)
         player.stateMachine = InputStateMachine(entityId, player.idle).also {
             it.currentState.enter(entityId)
         }
@@ -74,24 +83,35 @@ class InputStateMachine(
 }
 
 sealed class InputState(
-    protected val renders: ComponentMapper<RenderComponent>,
-    protected val players: ComponentMapper<PlayerComponent>,
-    protected val bodies: ComponentMapper<DynamicBodyComponent>,
+    private val dependencies: Dependencies,
 ) : State<Int> {
+    class Dependencies(
+        val renders: ComponentMapper<RenderComponent>,
+        val players: ComponentMapper<PlayerComponent>,
+        val bodies: ComponentMapper<DynamicBodyComponent>,
+        val factory: AssetFactory,
+    )
+
+    protected val renders: ComponentMapper<RenderComponent>
+        get() = dependencies.renders
+    protected val players: ComponentMapper<PlayerComponent>
+        get() = dependencies.players
+    protected val bodies: ComponentMapper<DynamicBodyComponent>
+        get() = dependencies.bodies
+
+    protected val factory: AssetFactory
+        get() = dependencies.factory
+
     open fun keyDown(entity: Int, keycode: Int): Boolean = false
     open fun keyUp(entity: Int, keycode: Int): Boolean = false
 
-    abstract class AnimationState(
-        renders: ComponentMapper<RenderComponent>,
-        players: ComponentMapper<PlayerComponent>,
-        bodies: ComponentMapper<DynamicBodyComponent>,
-    ): InputState(renders, players, bodies) {
+    abstract class AnimationState(dependencies: Dependencies): InputState(dependencies) {
 
-        protected abstract val animationName:String
+        protected abstract fun animation(): Animation<Sprite>
         override fun enter(entity: Int) {
             val renderComponent = renders[entity]
             renderComponent.render = Render.AnimationRender(
-                animation = Animation(0.15f, renderComponent.atlas.findRegions(animationName), PlayMode.LOOP),
+                animation = animation(),
                 dimensions = Rectangle(renderComponent.render.dimensions)
             )
         }
@@ -102,13 +122,10 @@ sealed class InputState(
         }
     }
 
-    class Run(
-        renders: ComponentMapper<RenderComponent>,
-        players: ComponentMapper<PlayerComponent>,
-        bodies: ComponentMapper<DynamicBodyComponent>
-    ): AnimationState(renders, players, bodies) {
+    class Run(dependencies: Dependencies): AnimationState(dependencies) {
 
-        override val animationName: String = "player_run"
+        override fun animation(): Animation<Sprite> =
+            factory.characterRunning()
 
         var enterKeyCode: Int? = null
 
@@ -142,13 +159,10 @@ sealed class InputState(
             }
         }
     }
-    class Idle(
-        renders: ComponentMapper<RenderComponent>,
-        players: ComponentMapper<PlayerComponent>,
-        bodies: ComponentMapper<DynamicBodyComponent>,
-    ): AnimationState(renders, players, bodies) {
+    class Idle(dependencies: Dependencies): AnimationState(dependencies) {
 
-        override val animationName: String = "player_stand"
+        override fun animation(): Animation<Sprite> =
+            factory.characterStanding()
 
         override fun enter(entity: Int) {
             super.enter(entity)

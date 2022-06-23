@@ -1,7 +1,5 @@
 package io.github.fourlastor.jamjam.level
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.math.Rectangle
 import io.github.fourlastor.jamjam.AssetFactory
 import io.github.fourlastor.ldtk.Definitions
@@ -13,8 +11,6 @@ import io.github.fourlastor.ldtk.LDtkTileInstance
 class LDtkConverter(
     private val factory: AssetFactory,
 ) {
-
-    private val atlas by lazy { TextureAtlas(Gdx.files.internal("tiles.atlas")) }
 
     fun convert(levelDefinition: LDtkLevelDefinition, definitions: Definitions): Level {
         val layerInstances = levelDefinition.layerInstances.orEmpty().reversed()
@@ -34,7 +30,6 @@ class LDtkConverter(
                         .let { checkNotNull(it) { "Player missing from entity layer." } }
                         .let {
                             Player(
-                                atlas = atlas,
                                 dimensions = factory.playerBlueprint(it.x, it.y)
                             )
                         }
@@ -64,7 +59,6 @@ class LDtkConverter(
                 definitions.tilesets.find { it.uid == tilesetDefUid }
                     ?.let { tileset ->
                         SpriteLayer(
-                            atlas,
                             autoLayerTiles.mapNotNull { tile ->
                                 tile.t
                                     .let { tileId -> tileset.customData.find { it.tileId == tileId } }

@@ -32,7 +32,8 @@ class LevelScreen(
 ) : KtxScreen {
 
     private val scale = 1f / 16f
-    private val converter = LDtkConverter(AssetFactory(scale))
+    private val factory = AssetFactory(scale)
+    private val converter = LDtkConverter(factory)
     private val level = converter.convert(levelDefinition, definitions)
 
     private val camera = OrthographicCamera().apply {
@@ -44,8 +45,8 @@ class LevelScreen(
 
     private val box2dWorld = createWorld(gravity = Vector2(0f, 10f))
 
-    private val debug = true
-    private val inputSystem = InputSystem()
+    private val debug = false
+    private val inputSystem = InputSystem(factory)
 
     private val world = WorldConfigurationBuilder().with(
         PhysicsSystem(
@@ -85,7 +86,6 @@ class LevelScreen(
             world.create {
                 component<PlayerComponent>(it)
                 component<RenderComponent>(it) {
-                    atlas = player.atlas
                     render = Render.Blueprint(player.dimensions)
                 }
                 component<DynamicBodyComponent>(it) {
@@ -118,6 +118,6 @@ class LevelScreen(
     override fun dispose() {
         world.dispose()
         box2dWorld.dispose()
-        level.dispose()
+        factory.dispose()
     }
 }
