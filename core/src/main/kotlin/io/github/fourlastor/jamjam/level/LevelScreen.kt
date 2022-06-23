@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.FitViewport
+import io.github.fourlastor.jamjam.AssetFactory
 import io.github.fourlastor.jamjam.extension.component
 import io.github.fourlastor.jamjam.extension.create
 import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
@@ -30,7 +31,8 @@ class LevelScreen(
     definitions: Definitions
 ) : KtxScreen {
 
-    private val converter = LDtkConverter(1f / 16f)
+    private val scale = 1f / 16f
+    private val converter = LDtkConverter(AssetFactory(scale))
     private val level = converter.convert(levelDefinition, definitions)
 
     private val camera = OrthographicCamera().apply {
