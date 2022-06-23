@@ -5,15 +5,15 @@ import com.artemis.ComponentMapper
 import com.artemis.annotations.All
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import io.github.fourlastor.jamjam.level.component.SpriteComponent
+import io.github.fourlastor.jamjam.level.component.RenderComponent
 import ktx.graphics.use
 
-@All(SpriteComponent::class)
+@All(RenderComponent::class)
 class RenderSystem(
     private val camera: Camera,
 ) : BaseEntitySystem() {
 
-    private lateinit var sprites: ComponentMapper<SpriteComponent>
+    private lateinit var renders: ComponentMapper<RenderComponent>
 
     private val batch = SpriteBatch()
 
@@ -28,7 +28,8 @@ class RenderSystem(
     }
 
     private fun process(batch: SpriteBatch, entityId: Int) {
-        sprites[entityId].sprite.draw(batch)
+        val renderComponent = renders[entityId]
+        renderComponent.render.draw(batch)
     }
 
     override fun dispose() {

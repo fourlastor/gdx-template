@@ -24,16 +24,14 @@ class LevelStatics(
 
 class SpriteLayer(
     private val atlas: TextureAtlas,
-    val layerIndex: Int,
     val tiles: List<Sprite>
 ): Disposable {
     override fun dispose() = atlas.dispose()
 }
 
 class Player(
-    private val atlas: TextureAtlas,
-    val layerIndex: Int,
-    val sprite: Sprite,
+    val atlas: TextureAtlas,
+    val dimensions: Rectangle,
 ): Disposable {
     override fun dispose() = atlas.dispose()
 }

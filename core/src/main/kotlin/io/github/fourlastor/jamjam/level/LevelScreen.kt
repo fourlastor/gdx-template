@@ -10,14 +10,15 @@ import io.github.fourlastor.jamjam.extension.component
 import io.github.fourlastor.jamjam.extension.create
 import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
 import io.github.fourlastor.jamjam.level.component.PlayerComponent
-import io.github.fourlastor.jamjam.level.component.SpriteComponent
+import io.github.fourlastor.jamjam.level.component.Render
+import io.github.fourlastor.jamjam.level.component.RenderComponent
 import io.github.fourlastor.jamjam.level.component.StaticBodyComponent
 import io.github.fourlastor.jamjam.level.system.CameraFollowPlayerSystem
 import io.github.fourlastor.jamjam.level.system.InputSystem
 import io.github.fourlastor.jamjam.level.system.PhysicsDebugSystem
 import io.github.fourlastor.jamjam.level.system.PhysicsSystem
+import io.github.fourlastor.jamjam.level.system.RenderFollowBodySystem
 import io.github.fourlastor.jamjam.level.system.RenderSystem
-import io.github.fourlastor.jamjam.level.system.SpriteFollowBodySystem
 import io.github.fourlastor.ldtk.Definitions
 import io.github.fourlastor.ldtk.LDtkLevelDefinition
 import ktx.app.KtxScreen
@@ -45,12 +46,12 @@ class LevelScreen(
     private val inputSystem = InputSystem()
 
     private val world = WorldConfigurationBuilder().with(
-        inputSystem,
         PhysicsSystem(
             config = PhysicsSystem.Config(step = 1f / 60f),
             box2dWorld = box2dWorld,
         ),
-        SpriteFollowBodySystem(),
+        inputSystem,
+        RenderFollowBodySystem(),
         CameraFollowPlayerSystem(camera = camera),
         RenderSystem(camera = camera),
     )
@@ -68,11 +69,10 @@ class LevelScreen(
     init {
         val statics = level.statics
         statics.spriteLayers.forEach { layer ->
-            layer.tiles.forEach { tileSprite ->
+            layer.tiles.forEach { sprite ->
                 world.create {
-                    component<SpriteComponent>(it) {
-                        priority = layer.layerIndex
-                        sprite = tileSprite
+                    component<RenderComponent>(it) {
+                        render = Render.SpriteRender(sprite)
                     }
                 }
             }
@@ -82,15 +82,14 @@ class LevelScreen(
         level.player.also { player ->
             world.create {
                 component<PlayerComponent>(it)
-                component<SpriteComponent>(it) {
-                    priority = player.layerIndex
-                    sprite = player.sprite
+                component<RenderComponent>(it) {
+                    atlas = player.atlas
+                    render = Render.Blueprint(player.dimensions)
                 }
                 component<DynamicBodyComponent>(it) {
-                    val sprite = player.sprite
-                    box = Rectangle(sprite.boundingRectangle).apply {
+                    box = Rectangle(player.dimensions).apply {
                         width *= 0.35f
-                        setCenter(sprite.boundingRectangle.getCenter(Vector2()))
+                        setCenter(player.dimensions.getCenter(Vector2()))
                     }
                 }
             }
