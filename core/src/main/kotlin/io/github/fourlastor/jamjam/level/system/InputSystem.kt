@@ -99,7 +99,8 @@ class InputSystem(
         )
         player.onGround = OnGround(dependencies)
         player.jumping = Jumping(dependencies)
-        player.falling = Falling(dependencies)
+        player.fallingFromGround = FallingFromGround(dependencies)
+        player.fallingFromJump = FallingFromJump(dependencies)
         player.stateMachine = InputStateMachine(entityId, player.onGround).also {
             it.currentState.enter(entityId)
         }.also {
@@ -114,7 +115,7 @@ class InputSystem(
         var runSpeed: Float,
         var jumpSpeed: Float,
         var jumpMaxHeight: Float,
-        var graceTimeMs: Float,
+        var graceTime: Float,
     )
 }
 
@@ -205,7 +206,7 @@ private class OnGround(
         val body = entity.body.body
         when {
             body.linearVelocity.y > 0 -> {
-                entity.player.stateMachine.changeState(entity.player.falling)
+                entity.player.stateMachine.changeState(entity.player.fallingFromGround)
             }
             body.linearVelocity.x == 0f && state != State.STANDING  -> {
                 entity.enterStanding()
@@ -246,7 +247,7 @@ private class Jumping(
         val position = body.position.y
 
         if (position - initialPosition <= -config.jumpMaxHeight) {
-            entity.player.stateMachine.changeState(entity.player.falling)
+            entity.player.stateMachine.changeState(entity.player.fallingFromJump)
             return
         }
 
@@ -255,19 +256,42 @@ private class Jumping(
 
     override fun keyUp(entity: Int, keycode: Int): Boolean {
         if (keycode == Keys.SPACE) {
-            entity.player.stateMachine.changeState(entity.player.falling)
+            entity.player.stateMachine.changeState(entity.player.fallingFromJump)
             return true
         }
         return super.keyUp(entity, keycode)
     }
 }
 
-private class Falling(
+private class FallingFromGround(
+    dependencies: Dependencies,
+): Falling(dependencies) {
+
+    override fun keyDown(entity: Int, keycode: Int): Boolean {
+        return when(keycode) {
+            Keys.SPACE -> {
+                if (fallingTime < config.graceTime) {
+                    entity.player.stateMachine.changeState(entity.player.jumping)
+                    true
+                } else {
+                    super.keyDown(entity, keycode)
+                }
+            }
+            else -> super.keyDown(entity, keycode)
+        }
+    }
+}
+
+private class FallingFromJump(
+    dependencies: Dependencies,
+): Falling(dependencies)
+
+private abstract class Falling(
     dependencies: Dependencies,
 ) : LateralMovement(dependencies) {
 
-    var fallingTime = 0f
-    var attemptedTime = -1f
+    protected var fallingTime = 0f
+    private var attemptedTime = -1f
 
     override fun enter(entity: Int) {
         val body = entity.body.body
@@ -294,7 +318,7 @@ private class Falling(
 
     override fun onMessage(entity: Int, telegram: Telegram): Boolean {
         if (telegram.message == Message.PLAYER_ON_GROUND.ordinal) {
-            if (attemptedTime > 0 && fallingTime - attemptedTime < config.graceTimeMs / 1000f) {
+            if (attemptedTime > 0 && fallingTime - attemptedTime < config.graceTime) {
                 entity.player.stateMachine.changeState(entity.player.jumping)
             } else {
                 entity.player.stateMachine.changeState(entity.player.onGround)
