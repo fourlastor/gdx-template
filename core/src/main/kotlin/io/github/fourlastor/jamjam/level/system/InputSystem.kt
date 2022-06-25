@@ -98,6 +98,7 @@ class InputSystem(
         )
         player.onGround = OnGround(dependencies, config)
         player.jumping = Jumping(dependencies, config)
+        player.falling = Falling(dependencies, config)
         player.stateMachine = InputStateMachine(entityId, player.onGround).also {
             it.currentState.enter(entityId)
         }.also {
@@ -224,11 +225,9 @@ private class Jumping(
 ) : LateralMovement(dependencies, config) {
 
     private var initialPosition: Float = -0f
-    private var jumping = true
     override fun enter(entity: Int) {
         super.enter(entity)
         initialPosition = entity.body.body.position.y
-        jumping = true
         updateAnimation(entity, factory.characterStanding())
     }
 
@@ -238,13 +237,29 @@ private class Jumping(
         val position = body.position.y
 
         if (position - initialPosition <= -3f) {
-            jumping = false
+            entity.player.stateMachine.changeState(entity.player.falling)
             return
         }
 
-        if (!jumping) return
-
         body.setLinearVelocity(body.linearVelocity.x, -4f)
+    }
+
+    override fun keyUp(entity: Int, keycode: Int): Boolean {
+        if (keycode == Keys.SPACE) {
+            entity.player.stateMachine.changeState(entity.player.falling)
+            return true
+        }
+        return super.keyUp(entity, keycode)
+    }
+}
+
+private class Falling(
+    dependencies: Dependencies,
+    config: Config,
+) : LateralMovement(dependencies, config) {
+    override fun enter(entity: Int) {
+        val body = entity.body.body
+        body.setLinearVelocity(body.linearVelocity.x, 0f)
     }
 
     override fun onMessage(entity: Int, telegram: Telegram): Boolean {
@@ -254,24 +269,12 @@ private class Jumping(
         }
         return false
     }
-
-    override fun keyUp(entity: Int, keycode: Int): Boolean {
-        if (keycode == Keys.SPACE) {
-            jumping = false
-            return true
-        }
-        return super.keyUp(entity, keycode)
-    }
 }
 
 abstract class LateralMovement(
     dependencies: Dependencies,
     private val config: Config,
 ) : InputState(dependencies) {
-
-    override fun enter(entity: Int) {
-        updateAnimation(entity, factory.characterStanding())
-    }
 
     override fun update(entity: Int) {
         val body = entity.body.body

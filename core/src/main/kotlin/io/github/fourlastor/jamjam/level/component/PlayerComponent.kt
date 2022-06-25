@@ -8,4 +8,5 @@ class PlayerComponent: Component() {
     lateinit var stateMachine: InputStateMachine
     lateinit var onGround: InputState
     lateinit var jumping: InputState
+    lateinit var falling: InputState
 }
