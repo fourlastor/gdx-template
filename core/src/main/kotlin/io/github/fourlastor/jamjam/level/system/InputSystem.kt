@@ -95,10 +95,11 @@ class InputSystem(
             players,
             bodies,
             factory,
+            config,
         )
-        player.onGround = OnGround(dependencies, config)
-        player.jumping = Jumping(dependencies, config)
-        player.falling = Falling(dependencies, config)
+        player.onGround = OnGround(dependencies)
+        player.jumping = Jumping(dependencies)
+        player.falling = Falling(dependencies)
         player.stateMachine = InputStateMachine(entityId, player.onGround).also {
             it.currentState.enter(entityId)
         }.also {
@@ -108,16 +109,18 @@ class InputSystem(
 
         }
     }
+
+    data class Config(
+        var runSpeed: Float,
+        var jumpSpeed: Float,
+        var jumpMaxHeight: Float,
+    )
 }
 
 private enum class Message {
     PLAYER_ON_GROUND,
     PLAYER_OFF_GROUND,
 }
-
-data class Config(
-    var speed: Float,
-)
 
 class InputStateMachine(
     entity: Int,
@@ -140,10 +143,13 @@ sealed class InputState(
         val players: ComponentMapper<PlayerComponent>,
         val bodies: ComponentMapper<PlayerBodyComponent>,
         val factory: AssetFactory,
+        val config: InputSystem.Config,
     )
 
     protected val factory: AssetFactory
         get() = dependencies.factory
+    protected val config: InputSystem.Config
+        get() = dependencies.config
 
     protected val Int.render: RenderComponent
         get() = dependencies.renders[this]
@@ -169,8 +175,7 @@ sealed class InputState(
 
 private class OnGround(
     dependencies: Dependencies,
-    config: Config,
-) : LateralMovement(dependencies, config) {
+) : LateralMovement(dependencies) {
 
     private var state: State = State.STANDING
 
@@ -221,8 +226,7 @@ private class OnGround(
 
 private class Jumping(
     dependencies: Dependencies,
-    config: Config,
-) : LateralMovement(dependencies, config) {
+) : LateralMovement(dependencies) {
 
     private var initialPosition: Float = -0f
     override fun enter(entity: Int) {
@@ -236,12 +240,12 @@ private class Jumping(
         val body = entity.body.body
         val position = body.position.y
 
-        if (position - initialPosition <= -3f) {
+        if (position - initialPosition <= -config.jumpMaxHeight) {
             entity.player.stateMachine.changeState(entity.player.falling)
             return
         }
 
-        body.setLinearVelocity(body.linearVelocity.x, -4f)
+        body.setLinearVelocity(body.linearVelocity.x, -config.jumpSpeed)
     }
 
     override fun keyUp(entity: Int, keycode: Int): Boolean {
@@ -255,8 +259,7 @@ private class Jumping(
 
 private class Falling(
     dependencies: Dependencies,
-    config: Config,
-) : LateralMovement(dependencies, config) {
+) : LateralMovement(dependencies) {
     override fun enter(entity: Int) {
         val body = entity.body.body
         body.setLinearVelocity(body.linearVelocity.x, 0f)
@@ -273,15 +276,14 @@ private class Falling(
 
 abstract class LateralMovement(
     dependencies: Dependencies,
-    private val config: Config,
 ) : InputState(dependencies) {
 
     override fun update(entity: Int) {
         val body = entity.body.body
 
         val velocityX = when {
-            Gdx.input.isKeyPressed(Keys.A) -> -config.speed
-            Gdx.input.isKeyPressed(Keys.D) -> config.speed
+            Gdx.input.isKeyPressed(Keys.A) -> -config.runSpeed
+            Gdx.input.isKeyPressed(Keys.D) -> config.runSpeed
             else -> 0f
         }
         entity.render.flipX = when {

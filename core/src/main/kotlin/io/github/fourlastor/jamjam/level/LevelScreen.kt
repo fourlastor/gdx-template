@@ -17,7 +17,6 @@ import io.github.fourlastor.jamjam.level.component.Render
 import io.github.fourlastor.jamjam.level.component.RenderComponent
 import io.github.fourlastor.jamjam.level.component.StaticBodyComponent
 import io.github.fourlastor.jamjam.level.system.CameraFollowPlayerSystem
-import io.github.fourlastor.jamjam.level.system.Config
 import io.github.fourlastor.jamjam.level.system.InputSystem
 import io.github.fourlastor.jamjam.level.system.PhysicsDebugSystem
 import io.github.fourlastor.jamjam.level.system.PhysicsSystem
@@ -55,11 +54,18 @@ class LevelScreen(
     private val box2dWorld = createWorld(gravity = Vector2(0f, 10f))
 
     private val debug = true
+
+    private val defaultRunSpeed = 4f
+    private val defaultJumpSpeed = 6f
+    private val defaultJumpMaxHeight = 3.5f
+
     private val inputSystem = InputSystem(
         factory = factory,
         box2dWorld = box2dWorld,
-        config = Config(
-            speed = 4f,
+        config = InputSystem.Config(
+            runSpeed = defaultRunSpeed,
+            jumpSpeed = defaultJumpSpeed,
+            jumpMaxHeight = defaultJumpMaxHeight,
         )
     )
 
@@ -137,13 +143,18 @@ class LevelScreen(
                     defaults()
                         .expandY()
                         .top()
-                    visLabel("Speed (m/s)")
-                    val speedField = visTextField("4")
+                    visLabel("Run speed:")
+                    val runSpeedField = visTextField("$defaultRunSpeed")
+                    visLabel("Jump speed:")
+                    val jumpSpeedField = visTextField("$defaultJumpSpeed")
+                    visLabel("Jump height:")
+                    val jumpHeightField = visTextField("$defaultJumpMaxHeight")
                     visTextButton("Update") {
                         onChange {
-                            val newSpeed = speedField.text.toFloatOrNull() ?: return@onChange
                             inputSystem.updateConfig {
-                                speed = newSpeed
+                                runSpeed = (runSpeedField.text.toFloatOrNull() ?: runSpeed)
+                                jumpSpeed = (jumpSpeedField.text.toFloatOrNull() ?: jumpSpeed)
+                                jumpMaxHeight = (jumpHeightField.text.toFloatOrNull() ?: jumpMaxHeight)
                             }
                         }
                     }
