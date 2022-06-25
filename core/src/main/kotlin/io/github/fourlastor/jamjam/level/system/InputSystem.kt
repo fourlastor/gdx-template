@@ -4,12 +4,11 @@ import com.artemis.ComponentMapper
 import com.artemis.annotations.All
 import com.artemis.systems.IteratingSystem
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
+import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Sprite
-import com.badlogic.gdx.math.Rectangle
 import io.github.fourlastor.jamjam.AssetFactory
 import io.github.fourlastor.jamjam.extension.State
 import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
@@ -21,17 +20,12 @@ import ktx.app.KtxInputAdapter
 @All(PlayerComponent::class, DynamicBodyComponent::class, RenderComponent::class)
 class InputSystem(
     private val factory: AssetFactory,
+    private val config: Config,
 ) : IteratingSystem() {
 
-    private val config = Config(
-        speed = 3f,
-    )
-
-    var speed: Float
-        set(value) {
-            config.speed = value
-        }
-        get() = config.speed
+    fun updateConfig(update: Config.() -> Unit) {
+        config.apply(update)
+    }
 
     private lateinit var bodies: ComponentMapper<DynamicBodyComponent>
     private lateinit var players: ComponentMapper<PlayerComponent>
@@ -71,9 +65,8 @@ class InputSystem(
             bodies,
             factory,
         )
-        player.idle = InputState.Idle(dependencies)
-        player.run = InputState.Run(dependencies, config)
-        player.stateMachine = InputStateMachine(entityId, player.idle).also {
+        player.onGround = InputState.OnGround(dependencies, config)
+        player.stateMachine = InputStateMachine(entityId, player.onGround).also {
             it.currentState.enter(entityId)
         }
     }
@@ -106,102 +99,78 @@ sealed class InputState(
         val factory: AssetFactory,
     )
 
-    protected val renders: ComponentMapper<RenderComponent>
-        get() = dependencies.renders
-    protected val players: ComponentMapper<PlayerComponent>
-        get() = dependencies.players
-    protected val bodies: ComponentMapper<DynamicBodyComponent>
-        get() = dependencies.bodies
-
     protected val factory: AssetFactory
         get() = dependencies.factory
+
+    protected val Int.render: RenderComponent
+        get() = dependencies.renders[this]
+    protected val Int.body: DynamicBodyComponent
+        get() = dependencies.bodies[this]
+    protected val Int.player: PlayerComponent
+        get() = dependencies.players[this]
+
+    protected fun updateAnimation(
+        entity: Int,
+        animation: Animation<Sprite>,
+    ) {
+        entity.render.render = Render.AnimationRender(
+            animation,
+            entity.render.render.dimensions,
+        )
+    }
 
     open fun keyDown(entity: Int, keycode: Int): Boolean = false
     open fun keyUp(entity: Int, keycode: Int): Boolean = false
 
-    abstract class AnimationState(dependencies: Dependencies) : InputState(dependencies) {
-
-        protected abstract fun animation(): Animation<Sprite>
-        override fun enter(entity: Int) {
-            val renderComponent = renders[entity]
-            renderComponent.render = Render.AnimationRender(
-                animation = animation(),
-                dimensions = Rectangle(renderComponent.render.dimensions)
-            )
-        }
-
-        override fun update(entity: Int) {
-            super.update(entity)
-            renders[entity].render.increaseTime(Gdx.graphics.deltaTime)
-        }
-    }
-
-    class Run(
+    class OnGround(
         dependencies: Dependencies,
-        private var config: Config,
-    ) : AnimationState(dependencies) {
+        private val config: Config,
+    ): InputState(dependencies) {
 
-        private val speed
-            get() = config.speed
-
-        override fun animation(): Animation<Sprite> =
-            factory.characterRunning()
-
-        var enterKeyCode: Int? = null
-
-        override fun update(entity: Int) {
-            super.update(entity)
-            val velocityX = when (enterKeyCode) {
-                Input.Keys.A -> -speed
-                Input.Keys.D -> speed
-                else -> 0f
-            }
-            bodies[entity].body.setLinearVelocity(velocityX, 0f)
+        private var speed: Float = 0f
+        private var lastKey = -1
+        override fun enter(entity: Int) {
+            updateAnimation(entity, factory.characterStanding())
         }
 
         override fun keyDown(entity: Int, keycode: Int): Boolean {
+            lastKey = keycode
             return when (keycode) {
-                Input.Keys.A, Input.Keys.D -> {
-                    enterKeyCode = keycode
+                Keys.A -> {
+                    speed = -config.speed
+                    updateAnimation(entity, factory.characterRunning())
+                    entity.render.flipX = true
                     true
                 }
-                else -> super.keyDown(entity, keycode)
+                Keys.D -> {
+                    speed = config.speed
+                    updateAnimation(entity, factory.characterRunning())
+                    entity.render.flipX = false
+                    true
+                }
+                else -> false
             }
         }
 
         override fun keyUp(entity: Int, keycode: Int): Boolean {
-            return if (keycode == enterKeyCode) {
-                val player = players[entity]
-                player.stateMachine.changeState(player.idle)
-                true
-            } else {
-                super.keyUp(entity, keycode)
+            if (lastKey != keycode) {
+                // TODO this is gonna break
+                return false
             }
-        }
-    }
-
-    class Idle(dependencies: Dependencies) : AnimationState(dependencies) {
-
-        override fun animation(): Animation<Sprite> =
-            factory.characterStanding()
-
-        override fun enter(entity: Int) {
-            super.enter(entity)
-            bodies[entity].body.setLinearVelocity(0f, 0f)
-        }
-
-        override fun keyDown(entity: Int, keycode: Int): Boolean {
             return when (keycode) {
-                Input.Keys.A, Input.Keys.D -> {
-                    val player = players[entity]
-                    player.stateMachine.changeState(player.run.apply {
-                        enterKeyCode = keycode
-                    })
+                Keys.A, Keys.D -> {
+                    speed = 0f
+                    updateAnimation(entity, factory.characterStanding())
                     true
                 }
-
-                else -> super.keyDown(entity, keycode)
+                else -> false
             }
+        }
+
+        override fun update(entity: Int) {
+            val body = entity.body.body
+            body.setLinearVelocity(speed, body.linearVelocity.y)
+            entity.render.render.increaseTime(Gdx.graphics.deltaTime)
         }
     }
 }

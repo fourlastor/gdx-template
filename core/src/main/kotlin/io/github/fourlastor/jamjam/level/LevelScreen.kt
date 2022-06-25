@@ -17,6 +17,7 @@ import io.github.fourlastor.jamjam.level.component.Render
 import io.github.fourlastor.jamjam.level.component.RenderComponent
 import io.github.fourlastor.jamjam.level.component.StaticBodyComponent
 import io.github.fourlastor.jamjam.level.system.CameraFollowPlayerSystem
+import io.github.fourlastor.jamjam.level.system.Config
 import io.github.fourlastor.jamjam.level.system.InputSystem
 import io.github.fourlastor.jamjam.level.system.PhysicsDebugSystem
 import io.github.fourlastor.jamjam.level.system.PhysicsSystem
@@ -54,7 +55,9 @@ class LevelScreen(
     private val box2dWorld = createWorld(gravity = Vector2(0f, 10f))
 
     private val debug = true
-    private val inputSystem = InputSystem(factory)
+    private val inputSystem = InputSystem(factory, Config(
+        speed = 4f,
+    ))
 
     private val world = WorldConfigurationBuilder().with(
         PhysicsSystem(
@@ -134,8 +137,10 @@ class LevelScreen(
                     val speedField = visTextField("4")
                     visTextButton("Update") {
                         onChange {
-                            val speed = speedField.text.toFloatOrNull() ?: return@onChange
-                            inputSystem.speed = speed
+                            val newSpeed = speedField.text.toFloatOrNull() ?: return@onChange
+                            inputSystem.updateConfig {
+                                speed = newSpeed
+                            }
                         }
                     }
                     pack()

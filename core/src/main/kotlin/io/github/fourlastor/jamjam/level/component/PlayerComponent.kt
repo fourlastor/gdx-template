@@ -6,6 +6,5 @@ import io.github.fourlastor.jamjam.level.system.InputStateMachine
 
 class PlayerComponent: Component() {
     lateinit var stateMachine: InputStateMachine
-    lateinit var run: InputState.Run
-    lateinit var idle: InputState.Idle
+    lateinit var onGround: InputState.OnGround
 }
