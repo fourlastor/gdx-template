@@ -6,7 +6,6 @@ import com.kotcrab.vis.ui.VisUI
 import io.github.fourlastor.ldtk.LDtkMapData
 import ktx.actors.onClick
 import ktx.app.KtxScreen
-import ktx.scene2d.Scene2DSkin
 import ktx.scene2d.actors
 import ktx.scene2d.vis.visTable
 import ktx.scene2d.vis.visTextButton
@@ -19,8 +18,6 @@ class MenuScreen(
     private val stage = Stage()
 
     init {
-        VisUI.load(VisUI.SkinScale.X2)
-        Scene2DSkin.defaultSkin = VisUI.getSkin()
         stage.actors {
             visTable(defaultSpacing = true) {
                 setFillParent(true)
@@ -37,6 +34,11 @@ class MenuScreen(
                 }
             }
         }
+    }
+
+    override fun resize(width: Int, height: Int) {
+        super.resize(width, height)
+        stage.viewport.update(width, height, true)
     }
 
     override fun show() {

@@ -23,6 +23,16 @@ class InputSystem(
     private val factory: AssetFactory,
 ) : IteratingSystem() {
 
+    private val config = Config(
+        speed = 3f,
+    )
+
+    var speed: Float
+        set(value) {
+            config.speed = value
+        }
+        get() = config.speed
+
     private lateinit var bodies: ComponentMapper<DynamicBodyComponent>
     private lateinit var players: ComponentMapper<PlayerComponent>
     private lateinit var renders: ComponentMapper<RenderComponent>
@@ -62,12 +72,16 @@ class InputSystem(
             factory,
         )
         player.idle = InputState.Idle(dependencies)
-        player.run = InputState.Run(dependencies)
+        player.run = InputState.Run(dependencies, config)
         player.stateMachine = InputStateMachine(entityId, player.idle).also {
             it.currentState.enter(entityId)
         }
     }
 }
+
+data class Config(
+    var speed: Float,
+)
 
 class InputStateMachine(
     entity: Int,
@@ -105,7 +119,7 @@ sealed class InputState(
     open fun keyDown(entity: Int, keycode: Int): Boolean = false
     open fun keyUp(entity: Int, keycode: Int): Boolean = false
 
-    abstract class AnimationState(dependencies: Dependencies): InputState(dependencies) {
+    abstract class AnimationState(dependencies: Dependencies) : InputState(dependencies) {
 
         protected abstract fun animation(): Animation<Sprite>
         override fun enter(entity: Int) {
@@ -122,7 +136,13 @@ sealed class InputState(
         }
     }
 
-    class Run(dependencies: Dependencies): AnimationState(dependencies) {
+    class Run(
+        dependencies: Dependencies,
+        private var config: Config,
+    ) : AnimationState(dependencies) {
+
+        private val speed
+            get() = config.speed
 
         override fun animation(): Animation<Sprite> =
             factory.characterRunning()
@@ -132,15 +152,15 @@ sealed class InputState(
         override fun update(entity: Int) {
             super.update(entity)
             val velocityX = when (enterKeyCode) {
-                Input.Keys.A -> -3f
-                Input.Keys.D -> 3f
+                Input.Keys.A -> -speed
+                Input.Keys.D -> speed
                 else -> 0f
             }
             bodies[entity].body.setLinearVelocity(velocityX, 0f)
         }
 
         override fun keyDown(entity: Int, keycode: Int): Boolean {
-            return when(keycode) {
+            return when (keycode) {
                 Input.Keys.A, Input.Keys.D -> {
                     enterKeyCode = keycode
                     true
@@ -159,7 +179,8 @@ sealed class InputState(
             }
         }
     }
-    class Idle(dependencies: Dependencies): AnimationState(dependencies) {
+
+    class Idle(dependencies: Dependencies) : AnimationState(dependencies) {
 
         override fun animation(): Animation<Sprite> =
             factory.characterStanding()
@@ -168,6 +189,7 @@ sealed class InputState(
             super.enter(entity)
             bodies[entity].body.setLinearVelocity(0f, 0f)
         }
+
         override fun keyDown(entity: Int, keycode: Int): Boolean {
             return when (keycode) {
                 Input.Keys.A, Input.Keys.D -> {
@@ -177,6 +199,7 @@ sealed class InputState(
                     })
                     true
                 }
+
                 else -> super.keyDown(entity, keycode)
             }
         }

@@ -2,9 +2,11 @@ package io.github.fourlastor.jamjam.level
 
 import com.artemis.WorldConfigurationBuilder
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.FitViewport
 import io.github.fourlastor.jamjam.AssetFactory
 import io.github.fourlastor.jamjam.extension.component
@@ -22,9 +24,15 @@ import io.github.fourlastor.jamjam.level.system.RenderFollowBodySystem
 import io.github.fourlastor.jamjam.level.system.RenderSystem
 import io.github.fourlastor.ldtk.Definitions
 import io.github.fourlastor.ldtk.LDtkLevelDefinition
+import ktx.actors.onChange
 import ktx.app.KtxScreen
 import ktx.box2d.createWorld
 import ktx.graphics.center
+import ktx.scene2d.actors
+import ktx.scene2d.vis.visLabel
+import ktx.scene2d.vis.visTable
+import ktx.scene2d.vis.visTextButton
+import ktx.scene2d.vis.visTextField
 
 class LevelScreen(
     levelDefinition: LDtkLevelDefinition,
@@ -45,7 +53,7 @@ class LevelScreen(
 
     private val box2dWorld = createWorld(gravity = Vector2(0f, 10f))
 
-    private val debug = false
+    private val debug = true
     private val inputSystem = InputSystem(factory)
 
     private val world = WorldConfigurationBuilder().with(
@@ -60,14 +68,18 @@ class LevelScreen(
     )
         .apply {
             if (debug) {
-                with(PhysicsDebugSystem(
-                    camera = camera,
-                    box2dWorld = box2dWorld,
-                ))
+                with(
+                    PhysicsDebugSystem(
+                        camera = camera,
+                        box2dWorld = box2dWorld,
+                    )
+                )
             }
         }
         .build()
         .let { com.artemis.World(it) }
+
+    private val stage = Stage()
 
     init {
         world.create {
@@ -109,10 +121,34 @@ class LevelScreen(
                 }
             }
         }
+
+        if (debug) {
+            stage.actors {
+                visTable(defaultSpacing = true) {
+                    padTop(8f)
+                    setFillParent(true)
+                    defaults()
+                        .expandY()
+                        .top()
+                    visLabel("Speed (m/s)")
+                    val speedField = visTextField("4")
+                    visTextButton("Update") {
+                        onChange {
+                            val speed = speedField.text.toFloatOrNull() ?: return@onChange
+                            inputSystem.speed = speed
+                        }
+                    }
+                    pack()
+                }
+            }
+        }
     }
 
     override fun show() {
-        Gdx.input.inputProcessor = inputSystem.inputProcessor
+        Gdx.input.inputProcessor = InputMultiplexer(
+            stage,
+            inputSystem.inputProcessor,
+        )
     }
 
     override fun hide() {
@@ -121,16 +157,20 @@ class LevelScreen(
 
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height, false)
+        stage.viewport.update(width, height, true)
     }
 
     override fun render(delta: Float) {
         world.setDelta(delta)
         world.process()
+        stage.act(delta)
+        stage.draw()
     }
 
     override fun dispose() {
         world.dispose()
         box2dWorld.dispose()
         factory.dispose()
+        stage.dispose()
     }
 }
