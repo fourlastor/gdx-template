@@ -29,7 +29,7 @@ class RenderSystem(
 
     private fun process(batch: SpriteBatch, entityId: Int) {
         val renderComponent = renders[entityId]
-        renderComponent.render.draw(batch)
+        renderComponent.render.draw(batch, camera)
     }
 
     override fun dispose() {

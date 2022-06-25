@@ -1,9 +1,12 @@
 package io.github.fourlastor.jamjam.level.component
 
 import com.artemis.Component
+import com.badlogic.gdx.graphics.Camera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Rectangle
 
 class RenderComponent: Component() {
@@ -13,20 +16,64 @@ class RenderComponent: Component() {
 
 sealed class Render {
 
-    abstract fun draw(batch: SpriteBatch)
+    abstract fun draw(batch: SpriteBatch, camera: Camera)
     abstract fun increaseTime(delta: Float)
 
     abstract val dimensions: Rectangle
 
     class Blueprint(override val dimensions: Rectangle): Render() {
-        override fun draw(batch: SpriteBatch) = Unit
+        override fun draw(batch: SpriteBatch, camera: Camera) = Unit
         override fun increaseTime(delta: Float) = Unit
+    }
+
+    class BackgroundRender(
+        private val backgroundLayers: List<BackgroundLayer>
+    ): Render() {
+        override fun draw(batch: SpriteBatch, camera: Camera) {
+            backgroundLayers.forEach {
+                it.draw(batch, camera)
+            }
+        }
+
+        override fun increaseTime(delta: Float) = Unit
+
+        override val dimensions: Rectangle = Rectangle()
+    }
+
+    class BackgroundLayer(
+        private val texture: Texture,
+        private val factor: Float,
+    ) {
+
+        init {
+            texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.ClampToEdge)
+        }
+        private val textureRegion = TextureRegion(texture)
+            .apply {
+            }
+
+        fun draw(batch: SpriteBatch, camera: Camera) {
+            val xOffset = camera.position.x * factor
+            textureRegion.regionX = (xOffset % texture.width).toInt()
+            textureRegion.regionY = 0
+            textureRegion.regionWidth = texture.width
+            textureRegion.regionHeight = texture.height
+            textureRegion.flip(false, true)
+
+            batch.draw(
+                textureRegion,
+                camera.position.x - camera.viewportWidth / 2,
+                camera.position.y - camera.viewportHeight / 2,
+                textureRegion.regionWidth / 16f,
+                textureRegion.regionHeight / 16f,
+            )
+        }
     }
 
     class SpriteRender(
         private val sprite: Sprite,
     ): Render() {
-        override fun draw(batch: SpriteBatch) {
+        override fun draw(batch: SpriteBatch, camera: Camera) {
             sprite.draw(batch)
         }
 
@@ -42,7 +89,7 @@ sealed class Render {
     ): Render() {
 
         private var delta: Float = 0f
-        override fun draw(batch: SpriteBatch) {
+        override fun draw(batch: SpriteBatch, camera: Camera) {
             val texture = animation.getKeyFrame(delta)
             batch.draw(texture, dimensions.x, dimensions.y, dimensions.width, dimensions.height)
         }
