@@ -3,7 +3,6 @@ package io.github.fourlastor.jamjam.level
 import com.artemis.WorldConfigurationBuilder
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.FitViewport
@@ -73,20 +72,14 @@ class LevelScreen(
     init {
         world.create {
             component<RenderComponent>(it) {
-                render = Render.BackgroundRender(listOf(
-                    Render.BackgroundLayer(
-                        Texture(Gdx.files.internal("parallax/background_0.png")),
-                        10f,
-                    ),
-                    Render.BackgroundLayer(
-                        Texture(Gdx.files.internal("parallax/background_1.png")),
-                        20f,
-                    ),
-                    Render.BackgroundLayer(
-                        Texture(Gdx.files.internal("parallax/background_2.png")),
-                        30f,
-                    ),
-                ))
+                render = Render.BackgroundRender(
+                    factory.parallaxBackground().mapIndexed { i, it ->
+                        Render.BackgroundLayer(
+                            it,
+                            i.toFloat() / 5,
+                        )
+                    }
+                )
             }
         }
 

@@ -2,7 +2,6 @@ package io.github.fourlastor.jamjam.level.component
 
 import com.artemis.Component
 import com.badlogic.gdx.graphics.Camera
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
@@ -41,28 +40,15 @@ sealed class Render {
     }
 
     class BackgroundLayer(
-        private val texture: Texture,
+        private val textureRegion: TextureRegion,
         private val factor: Float,
     ) {
-
-        init {
-            texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.ClampToEdge)
-        }
-        private val textureRegion = TextureRegion(texture)
-            .apply {
-            }
-
         fun draw(batch: SpriteBatch, camera: Camera) {
             val xOffset = camera.position.x * factor
-            textureRegion.regionX = (xOffset % texture.width).toInt()
-            textureRegion.regionY = 0
-            textureRegion.regionWidth = texture.width
-            textureRegion.regionHeight = texture.height
-            textureRegion.flip(false, true)
 
             batch.draw(
                 textureRegion,
-                camera.position.x - camera.viewportWidth / 2,
+                camera.position.x - camera.viewportWidth / 2 - xOffset,
                 camera.position.y - camera.viewportHeight / 2,
                 textureRegion.regionWidth / 16f,
                 textureRegion.regionHeight / 16f,

@@ -4,12 +4,14 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.utils.Disposable
 
 class AssetFactory(private val scale: Float) : Disposable {
 
-    private val atlas by lazy { TextureAtlas(Gdx.files.internal("tiles.atlas")) }
+    private val atlas by lazy { TextureAtlas(Gdx.files.internal("tiles.atlas"), true) }
+    private val parallaxAtlas by lazy { TextureAtlas(Gdx.files.internal("parallax.atlas"), true)}
 
     fun tile(
         name: String,
@@ -22,7 +24,7 @@ class AssetFactory(private val scale: Float) : Disposable {
             .scaleAtOrigin()
             .apply {
                 setPosition(x * scale, y * scale)
-                flip(flipX, !flipY)
+                flip(flipX, flipY)
             }
     }
 
@@ -37,24 +39,18 @@ class AssetFactory(private val scale: Float) : Disposable {
         Rectangle(x * scale, y * scale, 16f * scale, 16f * scale)
 
     private val characterStanding by lazy {
-        atlas.createSprites("player_stand").onEach {
-            it.scaleAtOrigin()
-            it.flip(false, true)
-        }.let {
-            Animation(0.033f, it, Animation.PlayMode.LOOP)
-        }
+        atlas.createSprites("player_stand")
+            .onEach { it.scaleAtOrigin() }
+            .let { Animation(0.033f, it, Animation.PlayMode.LOOP) }
 
     }
 
     fun characterStanding(): Animation<Sprite> = characterStanding
 
     private val characterRunning by lazy {
-        atlas.createSprites("player_run").onEach {
-            it.scaleAtOrigin()
-            it.flip(false, true)
-        }.let {
-            Animation(0.15f, it, Animation.PlayMode.LOOP)
-        }
+        atlas.createSprites("player_run")
+            .onEach { it.scaleAtOrigin() }
+            .let { Animation(0.15f, it, Animation.PlayMode.LOOP) }
     }
 
     fun characterRunning(): Animation<Sprite> = characterRunning
@@ -64,7 +60,12 @@ class AssetFactory(private val scale: Float) : Disposable {
         setScale(scale)
     }
 
+    fun parallaxBackground(): List<TextureRegion> = parallaxAtlas
+        .findRegions("background")
+        .toList()
+
     override fun dispose() {
         atlas.dispose()
+        parallaxAtlas.dispose()
     }
 }
