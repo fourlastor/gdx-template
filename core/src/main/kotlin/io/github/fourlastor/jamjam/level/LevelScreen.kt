@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 import io.github.fourlastor.jamjam.AssetFactory
 import io.github.fourlastor.jamjam.extension.component
 import io.github.fourlastor.jamjam.extension.create
-import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
+import io.github.fourlastor.jamjam.level.component.PlayerBodyComponent
 import io.github.fourlastor.jamjam.level.component.PlayerComponent
 import io.github.fourlastor.jamjam.level.component.Render
 import io.github.fourlastor.jamjam.level.component.RenderComponent
@@ -55,9 +55,13 @@ class LevelScreen(
     private val box2dWorld = createWorld(gravity = Vector2(0f, 10f))
 
     private val debug = true
-    private val inputSystem = InputSystem(factory, Config(
-        speed = 4f,
-    ))
+    private val inputSystem = InputSystem(
+        factory = factory,
+        box2dWorld = box2dWorld,
+        config = Config(
+            speed = 4f,
+        )
+    )
 
     private val world = WorldConfigurationBuilder().with(
         PhysicsSystem(
@@ -116,7 +120,7 @@ class LevelScreen(
                 component<RenderComponent>(it) {
                     render = Render.Blueprint(player.dimensions)
                 }
-                component<DynamicBodyComponent>(it) {
+                component<PlayerBodyComponent>(it) {
                     box = Rectangle(player.dimensions).apply {
                         width *= 0.35f
                         setCenter(player.dimensions.getCenter(Vector2()))

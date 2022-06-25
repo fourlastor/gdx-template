@@ -7,27 +7,58 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.fsm.DefaultStateMachine
+import com.badlogic.gdx.ai.msg.MessageManager
+import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Sprite
+import com.badlogic.gdx.physics.box2d.Contact
+import com.badlogic.gdx.physics.box2d.ContactImpulse
+import com.badlogic.gdx.physics.box2d.ContactListener
+import com.badlogic.gdx.physics.box2d.Manifold
+import com.badlogic.gdx.physics.box2d.World
 import io.github.fourlastor.jamjam.AssetFactory
 import io.github.fourlastor.jamjam.extension.State
-import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
+import io.github.fourlastor.jamjam.level.component.PlayerBodyComponent
 import io.github.fourlastor.jamjam.level.component.PlayerComponent
 import io.github.fourlastor.jamjam.level.component.Render
 import io.github.fourlastor.jamjam.level.component.RenderComponent
 import ktx.app.KtxInputAdapter
 
-@All(PlayerComponent::class, DynamicBodyComponent::class, RenderComponent::class)
+@All(PlayerComponent::class, PlayerBodyComponent::class, RenderComponent::class)
 class InputSystem(
     private val factory: AssetFactory,
     private val config: Config,
+    box2dWorld: World,
 ) : IteratingSystem() {
+
+    private val messageManager = MessageManager.getInstance()
+
+    init {
+        box2dWorld.setContactListener(object : ContactListener {
+            override fun beginContact(contact: Contact) {
+                if (contact.fixtureA.userData == "foot" || contact.fixtureB.userData == "foot") {
+                    messageManager.dispatchMessage(Message.PLAYER_ON_GROUND.ordinal)
+                }
+            }
+
+            override fun endContact(contact: Contact) {
+                if (contact.fixtureA.userData == "foot" || contact.fixtureB.userData == "foot") {
+                    messageManager.dispatchMessage(Message.PLAYER_OFF_GROUND.ordinal)
+                }
+            }
+
+            override fun preSolve(contact: Contact?, oldManifold: Manifold?) = Unit
+
+            override fun postSolve(contact: Contact?, impulse: ContactImpulse?) = Unit
+
+        })
+    }
 
     fun updateConfig(update: Config.() -> Unit) {
         config.apply(update)
     }
 
-    private lateinit var bodies: ComponentMapper<DynamicBodyComponent>
+    private lateinit var bodies: ComponentMapper<PlayerBodyComponent>
     private lateinit var players: ComponentMapper<PlayerComponent>
     private lateinit var renders: ComponentMapper<RenderComponent>
 
@@ -69,8 +100,18 @@ class InputSystem(
         player.jumping = InputState.Jumping(dependencies, config)
         player.stateMachine = InputStateMachine(entityId, player.onGround).also {
             it.currentState.enter(entityId)
+        }.also {
+            Message.values().forEach { message ->
+                messageManager.addListener(it, message.ordinal)
+            }
+
         }
     }
+}
+
+private enum class Message {
+    PLAYER_ON_GROUND,
+    PLAYER_OFF_GROUND,
 }
 
 data class Config(
@@ -96,7 +137,7 @@ sealed class InputState(
     class Dependencies(
         val renders: ComponentMapper<RenderComponent>,
         val players: ComponentMapper<PlayerComponent>,
-        val bodies: ComponentMapper<DynamicBodyComponent>,
+        val bodies: ComponentMapper<PlayerBodyComponent>,
         val factory: AssetFactory,
     )
 
@@ -105,7 +146,7 @@ sealed class InputState(
 
     protected val Int.render: RenderComponent
         get() = dependencies.renders[this]
-    protected val Int.body: DynamicBodyComponent
+    protected val Int.body: PlayerBodyComponent
         get() = dependencies.bodies[this]
     protected val Int.player: PlayerComponent
         get() = dependencies.players[this]
@@ -126,7 +167,7 @@ sealed class InputState(
     class OnGround(
         dependencies: Dependencies,
         config: Config,
-    ): LateralMovement(dependencies, config) {
+    ) : LateralMovement(dependencies, config) {
         override fun keyDown(entity: Int, keycode: Int): Boolean {
             return when (keycode) {
                 Keys.SPACE -> {
@@ -137,11 +178,22 @@ sealed class InputState(
                     updateAnimation(entity, factory.characterRunning())
                     true
                 }
+
                 Keys.D -> {
                     updateAnimation(entity, factory.characterRunning())
                     true
                 }
+
                 else -> super.keyDown(entity, keycode)
+            }
+        }
+
+        override fun keyUp(entity: Int, keycode: Int): Boolean {
+            return if (keycode == Keys.A || keycode == Keys.D) {
+                updateAnimation(entity, factory.characterStanding())
+                true
+            } else {
+                super.keyUp(entity, keycode)
             }
         }
     }
@@ -149,7 +201,7 @@ sealed class InputState(
     class Jumping(
         dependencies: Dependencies,
         config: Config,
-    ): LateralMovement(dependencies, config) {
+    ) : LateralMovement(dependencies, config) {
 
         private var initialPosition: Float = -0f
         private var jumping = true
@@ -175,6 +227,14 @@ sealed class InputState(
             body.setLinearVelocity(body.linearVelocity.x, -4f)
         }
 
+        override fun onMessage(entity: Int, telegram: Telegram): Boolean {
+            if (telegram.message == Message.PLAYER_ON_GROUND.ordinal) {
+                entity.player.stateMachine.changeState(entity.player.onGround)
+                return true
+            }
+            return false
+        }
+
         override fun keyUp(entity: Int, keycode: Int): Boolean {
             if (keycode == Keys.SPACE) {
                 jumping = false
@@ -187,7 +247,7 @@ sealed class InputState(
     abstract class LateralMovement(
         dependencies: Dependencies,
         private val config: Config,
-    ): InputState(dependencies) {
+    ) : InputState(dependencies) {
 
         override fun enter(entity: Int) {
             updateAnimation(entity, factory.characterStanding())
@@ -201,7 +261,19 @@ sealed class InputState(
                 Gdx.input.isKeyPressed(Keys.D) -> config.speed
                 else -> 0f
             }
-            entity.render.flipX = velocityX < 0
+            entity.render.flipX = when {
+                velocityX < 0f -> {
+                    true
+                }
+
+                velocityX > 0f -> {
+                    false
+                }
+
+                else -> {
+                    entity.render.flipX
+                }
+            }
             body.setLinearVelocity(velocityX, body.linearVelocity.y)
             entity.render.render.increaseTime(Gdx.graphics.deltaTime)
         }
