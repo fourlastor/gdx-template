@@ -170,19 +170,13 @@ private class OnGround(
     dependencies: Dependencies,
     config: Config,
 ) : LateralMovement(dependencies, config) {
+
+    private var state: State = State.STANDING
+
     override fun keyDown(entity: Int, keycode: Int): Boolean {
         return when (keycode) {
             Keys.SPACE -> {
                 entity.player.stateMachine.changeState(entity.player.jumping)
-                true
-            }
-            Keys.A -> {
-                updateAnimation(entity, factory.characterRunning())
-                true
-            }
-
-            Keys.D -> {
-                updateAnimation(entity, factory.characterRunning())
                 true
             }
 
@@ -190,14 +184,38 @@ private class OnGround(
         }
     }
 
-    override fun keyUp(entity: Int, keycode: Int): Boolean {
-        return if (keycode == Keys.A || keycode == Keys.D) {
-            updateAnimation(entity, factory.characterStanding())
-            true
+    override fun enter(entity: Int) {
+        super.enter(entity)
+        if (entity.body.body.linearVelocity.x == 0f) {
+            entity.enterStanding()
         } else {
-            super.keyUp(entity, keycode)
+            entity.enterRunning()
         }
     }
+
+    override fun update(entity: Int) {
+        super.update(entity)
+        when {
+            entity.body.body.linearVelocity.x == 0f && state != State.STANDING  -> {
+                entity.enterStanding()
+            }
+            entity.body.body.linearVelocity.x != 0f && state != State.RUNNING  -> {
+                entity.enterRunning()
+            }
+        }
+    }
+
+    private fun Int.enterRunning() {
+        state = State.RUNNING
+        updateAnimation(this, factory.characterRunning())
+    }
+
+    private fun Int.enterStanding() {
+        state = State.STANDING
+        updateAnimation(this, factory.characterStanding())
+    }
+
+    private enum class State {RUNNING, STANDING }
 }
 
 private class Jumping(
