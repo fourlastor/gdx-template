@@ -58,6 +58,7 @@ class LevelScreen(
     private val defaultRunSpeed = 4f
     private val defaultJumpSpeed = 6f
     private val defaultJumpMaxHeight = 3.5f
+    private val defaultGraceTimeMs = 100f
 
     private val inputSystem = InputSystem(
         factory = factory,
@@ -66,6 +67,7 @@ class LevelScreen(
             runSpeed = defaultRunSpeed,
             jumpSpeed = defaultJumpSpeed,
             jumpMaxHeight = defaultJumpMaxHeight,
+            graceTimeMs = defaultGraceTimeMs,
         )
     )
 
@@ -149,12 +151,15 @@ class LevelScreen(
                     val jumpSpeedField = visTextField("$defaultJumpSpeed")
                     visLabel("Jump height:")
                     val jumpHeightField = visTextField("$defaultJumpMaxHeight")
+                    visLabel("Grace ms:")
+                    val graceTimeField = visTextField("$defaultGraceTimeMs")
                     visTextButton("Update") {
                         onChange {
                             inputSystem.updateConfig {
                                 runSpeed = (runSpeedField.text.toFloatOrNull() ?: runSpeed)
                                 jumpSpeed = (jumpSpeedField.text.toFloatOrNull() ?: jumpSpeed)
                                 jumpMaxHeight = (jumpHeightField.text.toFloatOrNull() ?: jumpMaxHeight)
+                                graceTimeMs = (graceTimeField.text.toFloatOrNull() ?: graceTimeMs)
                             }
                         }
                     }

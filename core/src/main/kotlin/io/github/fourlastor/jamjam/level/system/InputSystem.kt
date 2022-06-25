@@ -114,6 +114,7 @@ class InputSystem(
         var runSpeed: Float,
         var jumpSpeed: Float,
         var jumpMaxHeight: Float,
+        var graceTimeMs: Float,
     )
 }
 
@@ -201,11 +202,15 @@ private class OnGround(
 
     override fun update(entity: Int) {
         super.update(entity)
+        val body = entity.body.body
         when {
-            entity.body.body.linearVelocity.x == 0f && state != State.STANDING  -> {
+            body.linearVelocity.y > 0 -> {
+                entity.player.stateMachine.changeState(entity.player.falling)
+            }
+            body.linearVelocity.x == 0f && state != State.STANDING  -> {
                 entity.enterStanding()
             }
-            entity.body.body.linearVelocity.x != 0f && state != State.RUNNING  -> {
+            body.linearVelocity.x != 0f && state != State.RUNNING  -> {
                 entity.enterRunning()
             }
         }
@@ -260,14 +265,40 @@ private class Jumping(
 private class Falling(
     dependencies: Dependencies,
 ) : LateralMovement(dependencies) {
+
+    var fallingTime = 0f
+    var attemptedTime = -1f
+
     override fun enter(entity: Int) {
         val body = entity.body.body
         body.setLinearVelocity(body.linearVelocity.x, 0f)
+        fallingTime = 0f
+        attemptedTime = -1f
+    }
+
+    override fun update(entity: Int) {
+        super.update(entity)
+
+        fallingTime += Gdx.graphics.deltaTime
+    }
+
+    override fun keyDown(entity: Int, keycode: Int): Boolean {
+        return when(keycode) {
+            Keys.SPACE -> {
+                attemptedTime = fallingTime
+                true
+            }
+            else -> super.keyDown(entity, keycode)
+        }
     }
 
     override fun onMessage(entity: Int, telegram: Telegram): Boolean {
         if (telegram.message == Message.PLAYER_ON_GROUND.ordinal) {
-            entity.player.stateMachine.changeState(entity.player.onGround)
+            if (attemptedTime > 0 && fallingTime - attemptedTime < config.graceTimeMs / 1000f) {
+                entity.player.stateMachine.changeState(entity.player.jumping)
+            } else {
+                entity.player.stateMachine.changeState(entity.player.onGround)
+            }
             return true
         }
         return false
