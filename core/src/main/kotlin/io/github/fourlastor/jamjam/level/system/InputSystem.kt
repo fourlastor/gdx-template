@@ -66,6 +66,7 @@ class InputSystem(
             factory,
         )
         player.onGround = InputState.OnGround(dependencies, config)
+        player.jumping = InputState.Jumping(dependencies, config)
         player.stateMachine = InputStateMachine(entityId, player.onGround).also {
             it.currentState.enter(entityId)
         }
@@ -124,52 +125,84 @@ sealed class InputState(
 
     class OnGround(
         dependencies: Dependencies,
+        config: Config,
+    ): LateralMovement(dependencies, config) {
+        override fun keyDown(entity: Int, keycode: Int): Boolean {
+            return when (keycode) {
+                Keys.SPACE -> {
+                    entity.player.stateMachine.changeState(entity.player.jumping)
+                    true
+                }
+                Keys.A -> {
+                    updateAnimation(entity, factory.characterRunning())
+                    true
+                }
+                Keys.D -> {
+                    updateAnimation(entity, factory.characterRunning())
+                    true
+                }
+                else -> super.keyDown(entity, keycode)
+            }
+        }
+    }
+
+    class Jumping(
+        dependencies: Dependencies,
+        config: Config,
+    ): LateralMovement(dependencies, config) {
+
+        private var initialPosition: Float = -0f
+        private var jumping = true
+        override fun enter(entity: Int) {
+            super.enter(entity)
+            initialPosition = entity.body.body.position.y
+            jumping = true
+            updateAnimation(entity, factory.characterStanding())
+        }
+
+        override fun update(entity: Int) {
+            super.update(entity)
+            val body = entity.body.body
+            val position = body.position.y
+
+            if (position - initialPosition <= -3f) {
+                jumping = false
+                return
+            }
+
+            if (!jumping) return
+
+            body.setLinearVelocity(body.linearVelocity.x, -4f)
+        }
+
+        override fun keyUp(entity: Int, keycode: Int): Boolean {
+            if (keycode == Keys.SPACE) {
+                jumping = false
+                return true
+            }
+            return super.keyUp(entity, keycode)
+        }
+    }
+
+    abstract class LateralMovement(
+        dependencies: Dependencies,
         private val config: Config,
     ): InputState(dependencies) {
 
-        private var speed: Float = 0f
-        private var lastKey = -1
         override fun enter(entity: Int) {
             updateAnimation(entity, factory.characterStanding())
         }
 
-        override fun keyDown(entity: Int, keycode: Int): Boolean {
-            lastKey = keycode
-            return when (keycode) {
-                Keys.A -> {
-                    speed = -config.speed
-                    updateAnimation(entity, factory.characterRunning())
-                    entity.render.flipX = true
-                    true
-                }
-                Keys.D -> {
-                    speed = config.speed
-                    updateAnimation(entity, factory.characterRunning())
-                    entity.render.flipX = false
-                    true
-                }
-                else -> false
-            }
-        }
-
-        override fun keyUp(entity: Int, keycode: Int): Boolean {
-            if (lastKey != keycode) {
-                // TODO this is gonna break
-                return false
-            }
-            return when (keycode) {
-                Keys.A, Keys.D -> {
-                    speed = 0f
-                    updateAnimation(entity, factory.characterStanding())
-                    true
-                }
-                else -> false
-            }
-        }
-
         override fun update(entity: Int) {
             val body = entity.body.body
-            body.setLinearVelocity(speed, body.linearVelocity.y)
+
+            val velocityX = when {
+                Gdx.input.isKeyPressed(Keys.A) -> -config.speed
+                Gdx.input.isKeyPressed(Keys.D) -> config.speed
+                else -> 0f
+            }
+            entity.render.flipX = velocityX < 0
+            body.setLinearVelocity(velocityX, body.linearVelocity.y)
             entity.render.render.increaseTime(Gdx.graphics.deltaTime)
         }
     }
