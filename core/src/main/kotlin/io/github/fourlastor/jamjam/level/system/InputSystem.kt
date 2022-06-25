@@ -96,8 +96,8 @@ class InputSystem(
             bodies,
             factory,
         )
-        player.onGround = InputState.OnGround(dependencies, config)
-        player.jumping = InputState.Jumping(dependencies, config)
+        player.onGround = OnGround(dependencies, config)
+        player.jumping = Jumping(dependencies, config)
         player.stateMachine = InputStateMachine(entityId, player.onGround).also {
             it.currentState.enter(entityId)
         }.also {
@@ -164,118 +164,119 @@ sealed class InputState(
     open fun keyDown(entity: Int, keycode: Int): Boolean = false
     open fun keyUp(entity: Int, keycode: Int): Boolean = false
 
-    class OnGround(
-        dependencies: Dependencies,
-        config: Config,
-    ) : LateralMovement(dependencies, config) {
-        override fun keyDown(entity: Int, keycode: Int): Boolean {
-            return when (keycode) {
-                Keys.SPACE -> {
-                    entity.player.stateMachine.changeState(entity.player.jumping)
-                    true
-                }
-                Keys.A -> {
-                    updateAnimation(entity, factory.characterRunning())
-                    true
-                }
+}
 
-                Keys.D -> {
-                    updateAnimation(entity, factory.characterRunning())
-                    true
-                }
-
-                else -> super.keyDown(entity, keycode)
-            }
-        }
-
-        override fun keyUp(entity: Int, keycode: Int): Boolean {
-            return if (keycode == Keys.A || keycode == Keys.D) {
-                updateAnimation(entity, factory.characterStanding())
+private class OnGround(
+    dependencies: Dependencies,
+    config: Config,
+) : LateralMovement(dependencies, config) {
+    override fun keyDown(entity: Int, keycode: Int): Boolean {
+        return when (keycode) {
+            Keys.SPACE -> {
+                entity.player.stateMachine.changeState(entity.player.jumping)
                 true
-            } else {
-                super.keyUp(entity, keycode)
             }
+            Keys.A -> {
+                updateAnimation(entity, factory.characterRunning())
+                true
+            }
+
+            Keys.D -> {
+                updateAnimation(entity, factory.characterRunning())
+                true
+            }
+
+            else -> super.keyDown(entity, keycode)
         }
     }
 
-    class Jumping(
-        dependencies: Dependencies,
-        config: Config,
-    ) : LateralMovement(dependencies, config) {
-
-        private var initialPosition: Float = -0f
-        private var jumping = true
-        override fun enter(entity: Int) {
-            super.enter(entity)
-            initialPosition = entity.body.body.position.y
-            jumping = true
+    override fun keyUp(entity: Int, keycode: Int): Boolean {
+        return if (keycode == Keys.A || keycode == Keys.D) {
             updateAnimation(entity, factory.characterStanding())
-        }
-
-        override fun update(entity: Int) {
-            super.update(entity)
-            val body = entity.body.body
-            val position = body.position.y
-
-            if (position - initialPosition <= -3f) {
-                jumping = false
-                return
-            }
-
-            if (!jumping) return
-
-            body.setLinearVelocity(body.linearVelocity.x, -4f)
-        }
-
-        override fun onMessage(entity: Int, telegram: Telegram): Boolean {
-            if (telegram.message == Message.PLAYER_ON_GROUND.ordinal) {
-                entity.player.stateMachine.changeState(entity.player.onGround)
-                return true
-            }
-            return false
-        }
-
-        override fun keyUp(entity: Int, keycode: Int): Boolean {
-            if (keycode == Keys.SPACE) {
-                jumping = false
-                return true
-            }
-            return super.keyUp(entity, keycode)
+            true
+        } else {
+            super.keyUp(entity, keycode)
         }
     }
+}
 
-    abstract class LateralMovement(
-        dependencies: Dependencies,
-        private val config: Config,
-    ) : InputState(dependencies) {
+private class Jumping(
+    dependencies: Dependencies,
+    config: Config,
+) : LateralMovement(dependencies, config) {
 
-        override fun enter(entity: Int) {
-            updateAnimation(entity, factory.characterStanding())
+    private var initialPosition: Float = -0f
+    private var jumping = true
+    override fun enter(entity: Int) {
+        super.enter(entity)
+        initialPosition = entity.body.body.position.y
+        jumping = true
+        updateAnimation(entity, factory.characterStanding())
+    }
+
+    override fun update(entity: Int) {
+        super.update(entity)
+        val body = entity.body.body
+        val position = body.position.y
+
+        if (position - initialPosition <= -3f) {
+            jumping = false
+            return
         }
 
-        override fun update(entity: Int) {
-            val body = entity.body.body
+        if (!jumping) return
 
-            val velocityX = when {
-                Gdx.input.isKeyPressed(Keys.A) -> -config.speed
-                Gdx.input.isKeyPressed(Keys.D) -> config.speed
-                else -> 0f
-            }
-            entity.render.flipX = when {
-                velocityX < 0f -> {
-                    true
-                }
+        body.setLinearVelocity(body.linearVelocity.x, -4f)
+    }
 
-                velocityX > 0f -> {
-                    false
-                }
-
-                else -> {
-                    entity.render.flipX
-                }
-            }
-            body.setLinearVelocity(velocityX, body.linearVelocity.y)
-            entity.render.render.increaseTime(Gdx.graphics.deltaTime)
+    override fun onMessage(entity: Int, telegram: Telegram): Boolean {
+        if (telegram.message == Message.PLAYER_ON_GROUND.ordinal) {
+            entity.player.stateMachine.changeState(entity.player.onGround)
+            return true
         }
+        return false
+    }
+
+    override fun keyUp(entity: Int, keycode: Int): Boolean {
+        if (keycode == Keys.SPACE) {
+            jumping = false
+            return true
+        }
+        return super.keyUp(entity, keycode)
+    }
+}
+
+abstract class LateralMovement(
+    dependencies: Dependencies,
+    private val config: Config,
+) : InputState(dependencies) {
+
+    override fun enter(entity: Int) {
+        updateAnimation(entity, factory.characterStanding())
+    }
+
+    override fun update(entity: Int) {
+        val body = entity.body.body
+
+        val velocityX = when {
+            Gdx.input.isKeyPressed(Keys.A) -> -config.speed
+            Gdx.input.isKeyPressed(Keys.D) -> config.speed
+            else -> 0f
+        }
+        entity.render.flipX = when {
+            velocityX < 0f -> {
+                true
+            }
+
+            velocityX > 0f -> {
+                false
+            }
+
+            else -> {
+                entity.render.flipX
+            }
+        }
+        body.setLinearVelocity(velocityX, body.linearVelocity.y)
+        entity.render.render.increaseTime(Gdx.graphics.deltaTime)
     }
 }
