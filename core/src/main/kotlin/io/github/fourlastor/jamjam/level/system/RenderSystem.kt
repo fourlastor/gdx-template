@@ -1,43 +1,38 @@
 package io.github.fourlastor.jamjam.level.system
 
+import com.artemis.BaseEntitySystem
+import com.artemis.ComponentMapper
+import com.artemis.annotations.All
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.github.quillraven.fleks.AllOf
-import com.github.quillraven.fleks.ComponentMapper
-import com.github.quillraven.fleks.Entity
-import com.github.quillraven.fleks.IteratingSystem
-import com.github.quillraven.fleks.collection.compareEntity
-import io.github.fourlastor.jamjam.level.WorldLevel
+import io.github.fourlastor.jamjam.level.component.RenderComponent
 import ktx.graphics.use
 
-@AllOf([LayerComponent::class])
+@All(RenderComponent::class)
 class RenderSystem(
-    private val layers: ComponentMapper<LayerComponent>,
     private val camera: Camera,
-) :
-    IteratingSystem(
-        compareEntity { entity, entity2 ->
-            layers[entity].order.compareTo(layers[entity2].order)
-        }) {
+) : BaseEntitySystem() {
+
+    private lateinit var renders: ComponentMapper<RenderComponent>
 
     private val batch = SpriteBatch()
 
-    override fun onTick() {
-        batch.use(camera) { super.onTick() }
+    override fun processSystem() {
+        batch.use(camera) { batch ->
+            val actives = subscription.entities
+            val ids = actives.data
+            for (i in 0 until actives.size()) {
+                process(batch, ids[i])
+            }
+        }
     }
 
-    override fun onTickEntity(entity: Entity) {
-        layers[entity].layer.render(batch)
+    private fun process(batch: SpriteBatch, entityId: Int) {
+        val renderComponent = renders[entityId]
+        renderComponent.render.draw(batch, camera)
     }
 
-    override fun onDispose() {
+    override fun dispose() {
         batch.dispose()
     }
-}
-
-class LayerComponent {
-    lateinit var layer: WorldLevel.Layer
-
-    val order: Int
-        get() = layer.order
 }
