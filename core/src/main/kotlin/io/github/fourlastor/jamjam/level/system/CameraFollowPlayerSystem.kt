@@ -4,16 +4,16 @@ import com.artemis.ComponentMapper
 import com.artemis.annotations.All
 import com.badlogic.gdx.graphics.Camera
 import io.github.fourlastor.jamjam.extension.SingleEntitySystem
-import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
+import io.github.fourlastor.jamjam.level.component.PlayerBodyComponent
 import io.github.fourlastor.jamjam.level.component.PlayerComponent
 import ktx.graphics.update
 
-@All(DynamicBodyComponent::class, PlayerComponent::class)
+@All(PlayerBodyComponent::class, PlayerComponent::class)
 class CameraFollowPlayerSystem(
     private val camera: Camera,
 ) : SingleEntitySystem() {
 
-    private lateinit var bodies: ComponentMapper<DynamicBodyComponent>
+    private lateinit var bodies: ComponentMapper<PlayerBodyComponent>
 
     private var lastX = camera.position.x
 

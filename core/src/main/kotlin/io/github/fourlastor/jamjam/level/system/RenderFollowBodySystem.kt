@@ -4,13 +4,13 @@ import com.artemis.ComponentMapper
 import com.artemis.annotations.All
 import com.artemis.systems.IteratingSystem
 import com.badlogic.gdx.math.Rectangle
-import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
+import io.github.fourlastor.jamjam.level.component.PlayerBodyComponent
 import io.github.fourlastor.jamjam.level.component.RenderComponent
 
-@All(DynamicBodyComponent::class, RenderComponent::class)
+@All(PlayerBodyComponent::class, RenderComponent::class)
 class RenderFollowBodySystem : IteratingSystem() {
 
-    private lateinit var bodies: ComponentMapper<DynamicBodyComponent>
+    private lateinit var bodies: ComponentMapper<PlayerBodyComponent>
     private lateinit var renders: ComponentMapper<RenderComponent>
 
     override fun process(entityId: Int) {

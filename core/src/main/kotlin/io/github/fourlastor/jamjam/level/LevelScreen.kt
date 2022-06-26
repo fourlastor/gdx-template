@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 import io.github.fourlastor.jamjam.AssetFactory
 import io.github.fourlastor.jamjam.extension.component
 import io.github.fourlastor.jamjam.extension.create
-import io.github.fourlastor.jamjam.level.component.DynamicBodyComponent
+import io.github.fourlastor.jamjam.level.component.PlayerBodyComponent
 import io.github.fourlastor.jamjam.level.component.PlayerComponent
 import io.github.fourlastor.jamjam.level.component.Render
 import io.github.fourlastor.jamjam.level.component.RenderComponent
@@ -54,7 +54,22 @@ class LevelScreen(
     private val box2dWorld = createWorld(gravity = Vector2(0f, 10f))
 
     private val debug = true
-    private val inputSystem = InputSystem(factory)
+
+    private val defaultRunSpeed = 4f
+    private val defaultJumpSpeed = 6f
+    private val defaultJumpMaxHeight = 3.5f
+    private val defaultGraceTime = 250f / 1000f
+
+    private val inputSystem = InputSystem(
+        factory = factory,
+        box2dWorld = box2dWorld,
+        config = InputSystem.Config(
+            runSpeed = defaultRunSpeed,
+            jumpSpeed = defaultJumpSpeed,
+            jumpMaxHeight = defaultJumpMaxHeight,
+            graceTime = defaultGraceTime,
+        )
+    )
 
     private val world = WorldConfigurationBuilder().with(
         PhysicsSystem(
@@ -113,7 +128,7 @@ class LevelScreen(
                 component<RenderComponent>(it) {
                     render = Render.Blueprint(player.dimensions)
                 }
-                component<DynamicBodyComponent>(it) {
+                component<PlayerBodyComponent>(it) {
                     box = Rectangle(player.dimensions).apply {
                         width *= 0.35f
                         setCenter(player.dimensions.getCenter(Vector2()))
@@ -130,12 +145,22 @@ class LevelScreen(
                     defaults()
                         .expandY()
                         .top()
-                    visLabel("Speed (m/s)")
-                    val speedField = visTextField("4")
+                    visLabel("Run speed:")
+                    val runSpeedField = visTextField("$defaultRunSpeed")
+                    visLabel("Jump speed:")
+                    val jumpSpeedField = visTextField("$defaultJumpSpeed")
+                    visLabel("Jump height:")
+                    val jumpHeightField = visTextField("$defaultJumpMaxHeight")
+                    visLabel("Grace s:")
+                    val graceTimeField = visTextField("$defaultGraceTime")
                     visTextButton("Update") {
                         onChange {
-                            val speed = speedField.text.toFloatOrNull() ?: return@onChange
-                            inputSystem.speed = speed
+                            inputSystem.updateConfig {
+                                runSpeed = (runSpeedField.text.toFloatOrNull() ?: runSpeed)
+                                jumpSpeed = (jumpSpeedField.text.toFloatOrNull() ?: jumpSpeed)
+                                jumpMaxHeight = (jumpHeightField.text.toFloatOrNull() ?: jumpMaxHeight)
+                                graceTime = (graceTimeField.text.toFloatOrNull() ?: graceTime)
+                            }
                         }
                     }
                     pack()

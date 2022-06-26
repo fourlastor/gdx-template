@@ -10,25 +10,26 @@ import com.badlogic.gdx.math.Rectangle
 
 class RenderComponent: Component() {
     lateinit var render: Render
+    var flipX = false
 }
 
 
 sealed class Render {
 
-    abstract fun draw(batch: SpriteBatch, camera: Camera)
+    abstract fun draw(batch: SpriteBatch, camera: Camera, flipX: Boolean)
     abstract fun increaseTime(delta: Float)
 
     abstract val dimensions: Rectangle
 
     class Blueprint(override val dimensions: Rectangle): Render() {
-        override fun draw(batch: SpriteBatch, camera: Camera) = Unit
+        override fun draw(batch: SpriteBatch, camera: Camera, flipX: Boolean) = Unit
         override fun increaseTime(delta: Float) = Unit
     }
 
     class BackgroundRender(
         private val backgroundLayers: List<BackgroundLayer>
     ): Render() {
-        override fun draw(batch: SpriteBatch, camera: Camera) {
+        override fun draw(batch: SpriteBatch, camera: Camera, flipX: Boolean) {
             backgroundLayers.forEach {
                 it.draw(batch, camera)
             }
@@ -59,7 +60,7 @@ sealed class Render {
     class SpriteRender(
         private val sprite: Sprite,
     ): Render() {
-        override fun draw(batch: SpriteBatch, camera: Camera) {
+        override fun draw(batch: SpriteBatch, camera: Camera, flipX: Boolean) {
             sprite.draw(batch)
         }
 
@@ -75,9 +76,12 @@ sealed class Render {
     ): Render() {
 
         private var delta: Float = 0f
-        override fun draw(batch: SpriteBatch, camera: Camera) {
+
+        override fun draw(batch: SpriteBatch, camera: Camera, flipX: Boolean) {
             val texture = animation.getKeyFrame(delta)
-            batch.draw(texture, dimensions.x, dimensions.y, dimensions.width, dimensions.height)
+            val x = if (flipX) dimensions.x + dimensions.width else dimensions.x
+            val width = if (flipX) -dimensions.width else dimensions.width
+            batch.draw(texture, x, dimensions.y, width, dimensions.height)
         }
 
         override fun increaseTime(delta: Float) {
