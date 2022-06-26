@@ -151,7 +151,7 @@ class LevelScreen(
                     val jumpSpeedField = visTextField("$defaultJumpSpeed")
                     visLabel("Jump height:")
                     val jumpHeightField = visTextField("$defaultJumpMaxHeight")
-                    visLabel("Grace ms:")
+                    visLabel("Grace s:")
                     val graceTimeField = visTextField("$defaultGraceTime")
                     visTextButton("Update") {
                         onChange {
